@@ -1,4 +1,6 @@
-package com.example.android.popularmovies;
+package com.gmail.grimesmea.android.popularmovies;
+
+import android.net.Uri;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,6 +37,20 @@ public class Movie {
         this.popularity = popularity;
         this.rating = rating;
         this.posterImagePath = posterImagePath;
+    }
+
+    public String getPosterImageUrl() {
+
+        final String MOVIEDBPOSTER_BASE_URL = "http://image.tmdb.org/t/p/";
+
+        String sizeParam = "w500";
+
+        Uri builtUri = Uri.parse(MOVIEDBPOSTER_BASE_URL).buildUpon()
+                .appendPath(sizeParam)
+                .appendEncodedPath(posterImagePath)
+                .build();
+
+        return builtUri.toString();
     }
 
 }

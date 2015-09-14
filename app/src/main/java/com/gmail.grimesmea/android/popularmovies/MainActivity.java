@@ -1,11 +1,9 @@
-package com.example.android.popularmovies;
+package com.gmail.grimesmea.android.popularmovies;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-
-import com.gmail.grimesmea.android.popularmovies.R;
 
 public class MainActivity extends AppCompatActivity {
 

@@ -1,4 +1,4 @@
-package com.example.android.popularmovies;
+package com.gmail.grimesmea.android.popularmovies;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
-import com.gmail.grimesmea.android.popularmovies.R;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -31,7 +31,7 @@ public class MoviePosterArrayAdapter extends ArrayAdapter<Movie> {
         }
 
         ImageView iconView = (ImageView) convertView.findViewById(R.id.grid_item_movie_imageview);
-        iconView.setImageResource(R.drawable.sample_poster);
+        Picasso.with(getContext()).load(movie.getPosterImageUrl()).into(iconView);
 
         return convertView;
     }

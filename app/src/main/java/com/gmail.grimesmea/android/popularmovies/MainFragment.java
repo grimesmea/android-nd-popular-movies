@@ -1,4 +1,4 @@
-package com.example.android.popularmovies;
+package com.gmail.grimesmea.android.popularmovies;
 
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -10,9 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
 import android.widget.ListView;
-
-import com.gmail.grimesmea.android.popularmovies.BuildConfig;
-import com.gmail.grimesmea.android.popularmovies.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -151,11 +148,6 @@ public class MainFragment extends Fragment {
         private Movie[] getMoviesDataFromJson(String moviesJsonStr) throws JSONException {
 
             final String MDB_RESULTS = "results";
-            final String MDB_TITLE = "original_title";
-            final String MDB_SYNOPSIS = "overview";
-            final String MDB_POPULARITY = "popularity";
-            final String MDB_RATING = "vote_average";
-            final String MDB_POSTER_PATH = "poster_path";
 
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
             JSONArray moviesJsonArray = moviesJson.getJSONArray(MDB_RESULTS);

@@ -1,4 +1,4 @@
-package com.example.android.popularmovies;
+package com.gmail.grimesmea.android.popularmovies;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
