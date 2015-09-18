@@ -1,5 +1,6 @@
 package com.gmail.grimesmea.android.popularmovies;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ListView;
 
@@ -28,6 +30,7 @@ import java.util.ArrayList;
  */
 public class MainFragment extends Fragment {
 
+    public final static String MOVIE_PARCELABLE_KEY = "com.gmail.grimesmea.anroid.popularmovies.movie_parcelable";
     private MoviePosterArrayAdapter movieAdapter;
 
     public MainFragment() {
@@ -42,7 +45,20 @@ public class MainFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         GridView gridView = (GridView) rootView.findViewById(R.id.gridview_movies);
+        gridView.setColumnWidth(gridView.getWidth() / 2);
         gridView.setAdapter(movieAdapter);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                Movie movie = movieAdapter.getItem(position);
+                Bundle movieBundle = new Bundle();
+                movieBundle.putParcelable("movieParcelable", movie);
+                Intent intent = new Intent(getActivity(), DetailActivity.class)
+                        .putExtra("movie", movieBundle);
+                startActivity(intent);
+            }
+        });
 
         return rootView;
     }
@@ -85,6 +101,7 @@ public class MainFragment extends Fragment {
                         .build();
 
                 URL url = new URL(builtUri.toString());
+                Log.v(LOG_TAG, url.toString());
 
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
@@ -124,7 +141,7 @@ public class MainFragment extends Fragment {
             }
 
             try {
-               return getMoviesDataFromJson(moviesJsonStr);
+                return getMoviesDataFromJson(moviesJsonStr);
 
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
@@ -133,16 +150,6 @@ public class MainFragment extends Fragment {
 
 
             return null;
-        }
-
-        @Override
-        protected void onPostExecute(Movie[] result) {
-            if (result != null) {
-                movieAdapter.clear();
-                for (Movie movie : result) {
-                    movieAdapter.add(movie);
-                }
-            }
         }
 
         private Movie[] getMoviesDataFromJson(String moviesJsonStr) throws JSONException {
@@ -159,11 +166,19 @@ public class MainFragment extends Fragment {
                 JSONObject movieJson = moviesJsonArray.getJSONObject(i);
 
                 moviesArray[i] = new Movie(movieJson);
-
-                Log.d(LOG_TAG, String.valueOf(moviesArray[i]));
             }
 
             return moviesArray;
+        }
+
+        @Override
+        protected void onPostExecute(Movie[] result) {
+            if (result != null) {
+                movieAdapter.clear();
+                for (Movie movie : result) {
+                    movieAdapter.add(movie);
+                }
+            }
         }
     }
 }
