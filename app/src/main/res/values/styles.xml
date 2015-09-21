@@ -8,27 +8,26 @@
     <style name="MovieTitleFont" parent="@android:style/TextAppearance.Large">
         <item name="android:textColor">@android:color/primary_text_dark</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:typeface">monospace</item>
+        <item name="android:typeface">sans</item>
     </style>
 
     <style name="MovieReleaseDateFont" parent="@android:style/TextAppearance.Large">
         <item name="android:textColor">@android:color/secondary_text_light</item>
-        <item name="android:typeface">monospace</item>
+        <item name="android:typeface">sans</item>
     </style>
 
     <style name="MovieRatingFont" parent="@android:style/TextAppearance.Large">
         <item name="android:textColor">@android:color/tertiary_text_light</item>
-        <item name="android:typeface">monospace</item>
+        <item name="android:typeface">sans</item>
     </style>
 
     <style name="MovieRatingDenominatorFont" parent="@android:style/TextAppearance.Small">
         <item name="android:textColor">@android:color/tertiary_text_light</item>
-        <item name="android:typeface">monospace</item>
+        <item name="android:typeface">sans</item>
     </style>
 
     <style name="MovieSynopsisFont" parent="@android:style/TextAppearance.Medium">
         <item name="android:textColor">@android:color/primary_text_light</item>
-        <item name="android:typeface">monospace</item>
+        <item name="android:typeface">sans</item>
     </style>
-
 </resources>

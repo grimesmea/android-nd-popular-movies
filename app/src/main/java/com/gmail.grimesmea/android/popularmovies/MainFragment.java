@@ -27,6 +27,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Encapsulates fetching the movie data and displaying it as a {@link ListView} layout.
@@ -35,20 +36,56 @@ public class MainFragment extends Fragment {
 
     public final static String MOVIE_PARCELABLE_KEY = "com.gmail.grimesmea.anroid.popularmovies.movie_parcelable";
     private MoviePosterArrayAdapter movieAdapter;
+    private boolean isSortedByPopularity = true;
 
     public MainFragment() {
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
-        // Add this line in order for this fragment to handle menu events.
+        if (savedInstanceState == null || !savedInstanceState.containsKey("movies")) {
+            updateMovies();
+            movieAdapter = new MoviePosterArrayAdapter(getActivity(), new ArrayList<Movie>());
+        } else {
+            movieAdapter = new MoviePosterArrayAdapter(getActivity(), new ArrayList<>(Arrays.asList((Movie[]) savedInstanceState.getParcelableArray("movies"))));
+        }
+
+        if (savedInstanceState != null && savedInstanceState.containsKey("sortedByPopularity")) {
+            isSortedByPopularity = savedInstanceState.getBoolean("sortedByPopularity");
+        }
+
         setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+
+        Movie[] moviesArray = new Movie[movieAdapter.getCount()];
+
+        for (int i = 0; i < movieAdapter.getCount(); i++) {
+            moviesArray[i] = movieAdapter.getItem(i);
+        }
+
+        outState.putParcelableArray("movies", moviesArray);
+        outState.putBoolean("sortedByPopularity", isSortedByPopularity);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_main, menu);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+
+        if (isSortedByPopularity == true) {
+            menu.findItem(R.id.action_sort_by_popularity).setChecked(true);
+        } else {
+            menu.findItem(R.id.action_sort_by_rating).setChecked(true);
+        }
     }
 
     @Override
@@ -58,12 +95,14 @@ public class MainFragment extends Fragment {
             case R.id.action_sort_by_popularity:
                 if (!item.isChecked()) {
                     item.setChecked(true);
+                    isSortedByPopularity = true;
                     movieAdapter.sort(MoviePosterArrayAdapter.createPopularityComparator());
                 }
                 return true;
             case R.id.action_sort_by_rating:
                 if (!item.isChecked()) {
                     item.setChecked(true);
+                    isSortedByPopularity = false;
                     movieAdapter.sort(MoviePosterArrayAdapter.createRatingComparator());
                 }
                 return true;
@@ -75,8 +114,6 @@ public class MainFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
-        movieAdapter = new MoviePosterArrayAdapter(getActivity(), new ArrayList<Movie>());
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -102,9 +139,7 @@ public class MainFragment extends Fragment {
 
     @Override
     public void onStart() {
-
         super.onStart();
-        updateMovies();
     }
 
     private void updateMovies() {
@@ -183,7 +218,6 @@ public class MainFragment extends Fragment {
                 Log.e(LOG_TAG, e.getMessage(), e);
                 e.printStackTrace();
             }
-
 
             return null;
         }
