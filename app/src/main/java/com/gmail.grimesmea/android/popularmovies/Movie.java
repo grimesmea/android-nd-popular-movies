@@ -7,6 +7,10 @@ import android.os.Parcelable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class Movie implements Parcelable {
 
     public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
@@ -83,6 +87,17 @@ public class Movie implements Parcelable {
                 .build();
 
         return builtUri.toString();
+    }
+
+    public String getFormattedReleaseDate() throws ParseException {
+
+        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date inputDate = inputFormat.parse(releaseDate);
+
+        SimpleDateFormat outputFormat = new SimpleDateFormat("MMM dd, yyyy");
+        String formattedReleaseDate = outputFormat.format(inputDate);
+
+        return formattedReleaseDate;
     }
 
     @Override

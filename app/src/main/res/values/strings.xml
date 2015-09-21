@@ -6,4 +6,8 @@
     <string name="title_activity_detail">DetailActivity</string>
     <string name="movie_backdrop_content_description">Movie backdrop image</string>
     <string name="movie_rating_denominator">/10</string>
+    <string name="sort_by_label_popularity">Popularity</string>
+    <string name="sort_by_options">Sort by</string>
+    <string name="sort_by_label_rating">Rating</string>
+    <string name="release_date_label">Release Date:</string>
 </resources>

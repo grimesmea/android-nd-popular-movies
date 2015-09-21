@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.text.ParseException;
+
 public class DetailFragment extends Fragment {
 
     private static final String LOG_TAG = DetailFragment.class.getSimpleName();
@@ -42,7 +44,12 @@ public class DetailFragment extends Fragment {
         movieTitleView.setText(movie.title);
 
         TextView movieReleaseDateView = (TextView) rootView.findViewById(R.id.detail_fragment_movie_release_date_textview);
-        movieReleaseDateView.setText(movie.releaseDate);
+        try {
+            movieReleaseDateView.append("\n" + movie.getFormattedReleaseDate());
+        } catch (ParseException e) {
+            movieReleaseDateView.append("\n" + movie.releaseDate);
+            e.printStackTrace();
+        }
 
         TextView movieRatingView = (TextView) rootView.findViewById(R.id.detail_fragment_movie_rating_textview);
         movieRatingView.setText(movie.rating);
