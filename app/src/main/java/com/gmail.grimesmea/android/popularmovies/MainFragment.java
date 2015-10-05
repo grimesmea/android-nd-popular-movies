@@ -1,120 +1,98 @@
 package com.gmail.grimesmea.android.popularmovies;
 
+
 import android.content.Intent;
-import android.net.Uri;
-import android.os.AsyncTask;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ListView;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
+import com.gmail.grimesmea.android.popularmovies.data.MoviesContract;
 
 /**
  * Encapsulates fetching the movie data and displaying it as a {@link ListView} layout.
  */
-public class MainFragment extends Fragment {
+public class MainFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    private static final int MOVIES_LOADER = 0;
+
+    private static final String[] FORECAST_COLUMNS = {
+            MoviesContract.MoviesEntry.TABLE_NAME + "." + MoviesContract.MoviesEntry._ID,
+            MoviesContract.MoviesEntry.COLUMN_MOVIE_TITLE,
+            MoviesContract.MoviesEntry.COLUMN_MOVIE_SYNOPSIS,
+            MoviesContract.MoviesEntry.COLUMN_MOVIE_RELEASE_DATE,
+            MoviesContract.MoviesEntry.COLUMN_MOVIE_POPULARITY,
+            MoviesContract.MoviesEntry.COLUMN_MOVIE_RATING,
+            MoviesContract.MoviesEntry.COLUMN_MOVIE_POSTER_PATH,
+            MoviesContract.MoviesEntry.COLUMN_MOVIE_BACKDROP_PATH,
+            MoviesContract.MoviesEntry.COLUMN_FAVORITE
+    };
+
+    static final int COL_MOVIE_TITLE = 1;
+    static final int COL_MOVIE_SYNOPSIS = 2;
+    static final int COL_MOVIE_RELEASE_DATE = 3;
+    static final int COL_MOVIE_POPULARITY = 4;
+    static final int COL_MOVIE_RATING = 5;
+    static final int COL_MOVIE_POSTER_PATH = 6;
+    static final int COL_MOVIE_BACKDROP_PATH = 7;
+    static final int COL_FAVORITE = 8;
+
+    public MoviePosterAdapter movieAdapter;
     public final static String MOVIE_PARCELABLE_KEY = "com.gmail.grimesmea.anroid.popularmovies.movie_parcelable";
-    private MoviePosterArrayAdapter movieAdapter;
+
     private boolean isSortedByPopularity = true;
+    private String sortByPopularityQueryParameter = MoviesContract.MoviesEntry.TABLE_NAME + "." +
+            MoviesContract.MoviesEntry.COLUMN_MOVIE_POPULARITY + " DESC";
+    private String sortByRatingQueryParameter = MoviesContract.MoviesEntry.TABLE_NAME + "." +
+            MoviesContract.MoviesEntry.COLUMN_MOVIE_RATING + " DESC";
 
     public MainFragment() {
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
-        if (savedInstanceState == null || !savedInstanceState.containsKey("movies")) {
-            updateMovies();
-            movieAdapter = new MoviePosterArrayAdapter(getActivity(), new ArrayList<Movie>());
-        } else {
-            movieAdapter = new MoviePosterArrayAdapter(getActivity(), new ArrayList<>(Arrays.asList((Movie[]) savedInstanceState.getParcelableArray("movies"))));
-        }
+//        if (savedInstanceState == null || !savedInstanceState.containsKey("movies")) {
+//            updateMovies();
+//            movieAdapter = new MoviePosterAdapter(
+//                    getActivity(),
+//                    moviesCursor = getActivity().getContentResolver().query(
+//                            MoviesContract.MoviesEntry.CONTENT_URI,
+//                            null,
+//                            null,
+//                            null,
+//                            sortByPopularityQueryParameter
+//                    ),
+//                    MoviePosterAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+//        } else {
+//            movieAdapter = new MoviePosterAdapter(getActivity(), new ArrayList<>(Arrays.asList((Movie[]) savedInstanceState.getParcelableArray("movies"))));
+//        }
 
         if (savedInstanceState != null && savedInstanceState.containsKey("sortedByPopularity")) {
             isSortedByPopularity = savedInstanceState.getBoolean("sortedByPopularity");
         }
 
+        updateMovies();
+
         setHasOptionsMenu(true);
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-
-        Movie[] moviesArray = new Movie[movieAdapter.getCount()];
-
-        for (int i = 0; i < movieAdapter.getCount(); i++) {
-            moviesArray[i] = movieAdapter.getItem(i);
-        }
-
-        outState.putParcelableArray("movies", moviesArray);
-        outState.putBoolean("sortedByPopularity", isSortedByPopularity);
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.fragment_main, menu);
-    }
-
-    @Override
-    public void onPrepareOptionsMenu(Menu menu) {
-
-        if (isSortedByPopularity == true) {
-            menu.findItem(R.id.action_sort_by_popularity).setChecked(true);
-        } else {
-            menu.findItem(R.id.action_sort_by_rating).setChecked(true);
-        }
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        switch (item.getItemId()) {
-            case R.id.action_sort_by_popularity:
-                if (!item.isChecked()) {
-                    item.setChecked(true);
-                    isSortedByPopularity = true;
-                    movieAdapter.sort(MoviePosterArrayAdapter.createPopularityComparator());
-                }
-                return true;
-            case R.id.action_sort_by_rating:
-                if (!item.isChecked()) {
-                    item.setChecked(true);
-                    isSortedByPopularity = false;
-                    movieAdapter.sort(MoviePosterArrayAdapter.createRatingComparator());
-                }
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
+        movieAdapter = new MoviePosterAdapter(getActivity(), null, 0);
+        Log.d("MainFragment: ", "movieAdapter populated");
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         GridView gridView = (GridView) rootView.findViewById(R.id.gridview_movies);
@@ -124,131 +102,112 @@ public class MainFragment extends Fragment {
 
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Movie movie = movieAdapter.getItem(position);
-                Bundle movieBundle = new Bundle();
-                movieBundle.putParcelable("movieParcelable", movie);
-                Intent intent = new Intent(getActivity(), DetailActivity.class)
-                        .putExtra("movie", movieBundle);
-                startActivity(intent);
+                Movie movie = (Movie) movieAdapter.getItem(position);
+                if (movie != null) {
+                    Bundle movieBundle = new Bundle();
+                    movieBundle.putParcelable("movieParcelable", movie);
+                    Intent intent = new Intent(getActivity(), DetailActivity.class)
+                            .putExtra("movie", movieBundle);
+                    startActivity(intent);
+                }
             }
         });
 
         return rootView;
     }
 
+    private void updateMovies() {
+        FetchMoviesTask moviesTask = new FetchMoviesTask(getActivity());
+        moviesTask.execute();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.fragment_main, menu);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        if (isSortedByPopularity == true) {
+            menu.findItem(R.id.action_sort_by_popularity).setChecked(true);
+        } else {
+            menu.findItem(R.id.action_sort_by_rating).setChecked(true);
+        }
+    }
+
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        switch (item.getItemId()) {
+//            case R.id.action_sort_by_popularity:
+//                if (!item.isChecked()) {
+//                    item.setChecked(true);
+//                    isSortedByPopularity = true;
+//                    movieAdapter.sort(MoviePosterAdapter.createPopularityComparator());
+//                }
+//                return true;
+//            case R.id.action_sort_by_rating:
+//                if (!item.isChecked()) {
+//                    item.setChecked(true);
+//                    isSortedByPopularity = false;
+//                    movieAdapter.sort(MoviePosterAdapter.createRatingComparator());
+//                }
+//                return true;
+//            default:
+//                return super.onOptionsItemSelected(item);
+//        }
+//    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        getLoaderManager().initLoader(MOVIES_LOADER, null, this);
+    }
 
     @Override
     public void onStart() {
         super.onStart();
     }
 
-    private void updateMovies() {
-        FetchMoviesTask moviesTask = new FetchMoviesTask();
-        moviesTask.execute();
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean("sortedByPopularity", isSortedByPopularity);
+        super.onSaveInstanceState(outState);
     }
 
-    public class FetchMoviesTask extends AsyncTask<Void, Void, Movie[]> {
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
+        CursorLoader cursorLoader;
 
-        private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
-
-        @Override
-        protected Movie[] doInBackground(Void... params) {
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-
-            String moviesJsonStr = null;
-
-            String sortParam = "popularity.desc";
-            String apiKey = BuildConfig.API_KEY;
-
-            try {
-                final String MOVIEDB_BASE_URL =
-                        "http://api.themoviedb.org/3/discover/movie?";
-                final String SORT_PARAM = "sort_by";
-                final String API_KEY_PARAM = "api_key";
-
-                Uri builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
-                        .appendQueryParameter(SORT_PARAM, sortParam)
-                        .appendQueryParameter(API_KEY_PARAM, apiKey)
-                        .build();
-
-                URL url = new URL(builtUri.toString());
-
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    buffer.append(line + "\n");
-                }
-
-                if (buffer.length() == 0) {
-                    return null;
-                }
-
-                moviesJsonStr = buffer.toString();
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Error ", e);
-                return null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(LOG_TAG, "Error closing stream", e);
-                    }
-                }
-            }
-
-            try {
-                return getMoviesDataFromJson(moviesJsonStr);
-
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, e.getMessage(), e);
-                e.printStackTrace();
-            }
-
-            return null;
+        if (isSortedByPopularity) {
+            cursorLoader = new CursorLoader(
+                    getActivity(),
+                    MoviesContract.MoviesEntry.CONTENT_URI,
+                    null,
+                    null,
+                    null,
+                    sortByPopularityQueryParameter
+            );
+        } else {
+            cursorLoader = new CursorLoader(
+                    getActivity(),
+                    MoviesContract.MoviesEntry.CONTENT_URI,
+                    null,
+                    null,
+                    null,
+                    sortByRatingQueryParameter
+            );
         }
 
-        private Movie[] getMoviesDataFromJson(String moviesJsonStr) throws JSONException {
+        return cursorLoader;
+    }
 
-            final String MDB_RESULTS = "results";
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        movieAdapter.swapCursor(cursor);
+    }
 
-            JSONObject moviesJson = new JSONObject(moviesJsonStr);
-            JSONArray moviesJsonArray = moviesJson.getJSONArray(MDB_RESULTS);
-
-            Movie[] moviesArray = new Movie[moviesJsonArray.length()];
-
-            for (int i = 0; i < moviesJsonArray.length(); i++) {
-
-                JSONObject movieJson = moviesJsonArray.getJSONObject(i);
-
-                moviesArray[i] = new Movie(movieJson);
-            }
-
-            return moviesArray;
-        }
-
-        @Override
-        protected void onPostExecute(Movie[] result) {
-            if (result != null) {
-                movieAdapter.clear();
-                for (Movie movie : result) {
-                    movieAdapter.add(movie);
-                }
-            }
-        }
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        movieAdapter.swapCursor(null);
     }
 }
