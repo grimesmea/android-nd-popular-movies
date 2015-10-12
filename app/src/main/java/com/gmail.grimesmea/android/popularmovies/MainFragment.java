@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -25,8 +26,17 @@ import com.gmail.grimesmea.android.popularmovies.data.MoviesContract;
  */
 public class MainFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    public final static String MOVIE_PARCELABLE_KEY = "com.gmail.grimesmea.anroid.popularmovies.movie_parcelable";
+    static final int COL_MOVIE_ID = 0;
+    static final int COL_MOVIE_TITLE = 1;
+    static final int COL_MOVIE_SYNOPSIS = 2;
+    static final int COL_MOVIE_RELEASE_DATE = 3;
+    static final int COL_MOVIE_POPULARITY = 4;
+    static final int COL_MOVIE_RATING = 5;
+    static final int COL_MOVIE_POSTER_PATH = 6;
+    static final int COL_MOVIE_BACKDROP_PATH = 7;
+    static final int COL_FAVORITE = 8;
     private static final int MOVIES_LOADER = 0;
-
     private static final String[] FORECAST_COLUMNS = {
             MoviesContract.MoviesEntry.TABLE_NAME + "." + MoviesContract.MoviesEntry._ID,
             MoviesContract.MoviesEntry.COLUMN_MOVIE_TITLE,
@@ -38,19 +48,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
             MoviesContract.MoviesEntry.COLUMN_MOVIE_BACKDROP_PATH,
             MoviesContract.MoviesEntry.COLUMN_FAVORITE
     };
-
-    static final int COL_MOVIE_TITLE = 1;
-    static final int COL_MOVIE_SYNOPSIS = 2;
-    static final int COL_MOVIE_RELEASE_DATE = 3;
-    static final int COL_MOVIE_POPULARITY = 4;
-    static final int COL_MOVIE_RATING = 5;
-    static final int COL_MOVIE_POSTER_PATH = 6;
-    static final int COL_MOVIE_BACKDROP_PATH = 7;
-    static final int COL_FAVORITE = 8;
-
     public MoviePosterAdapter movieAdapter;
-    public final static String MOVIE_PARCELABLE_KEY = "com.gmail.grimesmea.anroid.popularmovies.movie_parcelable";
-
     private boolean isSortedByPopularity = true;
     private String sortByPopularityQueryParameter = MoviesContract.MoviesEntry.TABLE_NAME + "." +
             MoviesContract.MoviesEntry.COLUMN_MOVIE_POPULARITY + " DESC";
@@ -63,27 +61,20 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        if (savedInstanceState == null || !savedInstanceState.containsKey("movies")) {
-//            updateMovies();
-//            movieAdapter = new MoviePosterAdapter(
-//                    getActivity(),
-//                    moviesCursor = getActivity().getContentResolver().query(
-//                            MoviesContract.MoviesEntry.CONTENT_URI,
-//                            null,
-//                            null,
-//                            null,
-//                            sortByPopularityQueryParameter
-//                    ),
-//                    MoviePosterAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
-//        } else {
-//            movieAdapter = new MoviePosterAdapter(getActivity(), new ArrayList<>(Arrays.asList((Movie[]) savedInstanceState.getParcelableArray("movies"))));
-//        }
 
         if (savedInstanceState != null && savedInstanceState.containsKey("sortedByPopularity")) {
             isSortedByPopularity = savedInstanceState.getBoolean("sortedByPopularity");
         }
 
-        updateMovies();
+        if (!getActivity().getContentResolver().query(
+                MoviesContract.MoviesEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                sortByPopularityQueryParameter
+        ).moveToNext()) {
+            updateMovies();
+        }
 
         setHasOptionsMenu(true);
     }
@@ -102,9 +93,10 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Movie movie = (Movie) movieAdapter.getItem(position);
-                if (movie != null) {
+                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
+                if (cursor != null) {
                     Bundle movieBundle = new Bundle();
+                    Movie movie = new Movie(cursor);
                     movieBundle.putParcelable("movieParcelable", movie);
                     Intent intent = new Intent(getActivity(), DetailActivity.class)
                             .putExtra("movie", movieBundle);
@@ -135,27 +127,27 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         }
     }
 
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        switch (item.getItemId()) {
-//            case R.id.action_sort_by_popularity:
-//                if (!item.isChecked()) {
-//                    item.setChecked(true);
-//                    isSortedByPopularity = true;
-//                    movieAdapter.sort(MoviePosterAdapter.createPopularityComparator());
-//                }
-//                return true;
-//            case R.id.action_sort_by_rating:
-//                if (!item.isChecked()) {
-//                    item.setChecked(true);
-//                    isSortedByPopularity = false;
-//                    movieAdapter.sort(MoviePosterAdapter.createRatingComparator());
-//                }
-//                return true;
-//            default:
-//                return super.onOptionsItemSelected(item);
-//        }
-//    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_sort_by_popularity:
+                if (!item.isChecked()) {
+                    item.setChecked(true);
+                    isSortedByPopularity = true;
+                    getLoaderManager().restartLoader(MOVIES_LOADER, null, this);
+                }
+                return true;
+            case R.id.action_sort_by_rating:
+                if (!item.isChecked()) {
+                    item.setChecked(true);
+                    isSortedByPopularity = false;
+                    getLoaderManager().restartLoader(MOVIES_LOADER, null, this);
+                }
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {

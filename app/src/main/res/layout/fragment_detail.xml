@@ -62,15 +62,30 @@
                 android:layout_weight="2"
                 android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/detail_fragment_movie_release_date_textview"
-                    style="@style/MovieReleaseDateFont"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="16dp"
-                    android:paddingRight="16dp"
-                    android:paddingTop="16dp"
-                    android:text="@string/release_date_label" />
+                    android:layout_gravity="left"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/detail_fragment_movie_release_date_label_textview"
+                        style="@style/MovieReleaseDateFont"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="16dp"
+                        android:paddingRight="16dp"
+                        android:paddingTop="16dp"
+                        android:text="@string/release_date_label" />
+
+                    <TextView
+                        android:id="@+id/detail_fragment_movie_release_date_textview"
+                        style="@style/MovieReleaseDateFont"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="16dp"
+                        android:paddingRight="16dp" />
+                </LinearLayout>
 
                 <RelativeLayout
                     android:layout_width="match_parent"

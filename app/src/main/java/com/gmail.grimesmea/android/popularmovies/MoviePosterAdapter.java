@@ -28,15 +28,7 @@ public class MoviePosterAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         ImageView posterView = (ImageView) view;
-        Movie movie = new Movie(
-                cursor.getString(MainFragment.COL_MOVIE_TITLE),
-                cursor.getString(MainFragment.COL_MOVIE_SYNOPSIS),
-                cursor.getString(MainFragment.COL_MOVIE_RELEASE_DATE),
-                cursor.getString(MainFragment.COL_MOVIE_POPULARITY),
-                cursor.getString(MainFragment.COL_MOVIE_RATING),
-                cursor.getString(MainFragment.COL_MOVIE_POSTER_PATH),
-                cursor.getString(MainFragment.COL_MOVIE_BACKDROP_PATH)
-        );
+        Movie movie = new Movie(cursor);
         Picasso.with(context).load(movie.getImageUrl(movie.posterImagePath)).into(posterView);
     }
 }

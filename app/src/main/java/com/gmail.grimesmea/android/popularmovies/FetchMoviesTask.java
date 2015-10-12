@@ -127,7 +127,7 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Movie[]> {
             List<ContentValues> moviesContentValuesVector = new Vector<ContentValues>(moviesArray.length);
             ContentValues[] moviesContentValuesArray = new ContentValues[moviesArray.length];
 
-            for (Movie movie:moviesArray) {
+            for (Movie movie : moviesArray) {
                 moviesContentValuesVector.add(movie.createContentValues());
             }
             moviesContentValuesVector.toArray(moviesContentValuesArray);

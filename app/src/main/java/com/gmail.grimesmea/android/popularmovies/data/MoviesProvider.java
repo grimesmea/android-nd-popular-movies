@@ -9,6 +9,9 @@ import android.net.Uri;
 
 public class MoviesProvider extends ContentProvider {
 
+    static final int MOVIES = 100;
+    static final int MOVIE = 101;
+    static final int FAVORITES = 200;
     private static final UriMatcher uriMatcher = buildUriMatcher();
     private static final String movieSelection =
             MoviesContract.MoviesEntry.TABLE_NAME + "." +
@@ -17,10 +20,6 @@ public class MoviesProvider extends ContentProvider {
             MoviesContract.MoviesEntry.TABLE_NAME + "." +
                     MoviesContract.MoviesEntry.COLUMN_FAVORITE + " = 1";
     private MoviesDbHelper moviesDbHelper;
-
-    static final int MOVIES = 100;
-    static final int MOVIE = 101;
-    static final int FAVORITES = 200;
 
     static UriMatcher buildUriMatcher() {
         final UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -132,7 +131,7 @@ public class MoviesProvider extends ContentProvider {
         final int match = uriMatcher.match(uri);
         int rowsDeleted;
 
-        if ( null == selection ) {
+        if (null == selection) {
             selection = "1";
         }
 

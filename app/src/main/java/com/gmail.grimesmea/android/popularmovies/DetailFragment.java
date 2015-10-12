@@ -16,6 +16,7 @@ import java.text.ParseException;
 public class DetailFragment extends Fragment {
 
     private static final String LOG_TAG = DetailFragment.class.getSimpleName();
+
     private Movie movie;
 
     public DetailFragment() {
@@ -29,7 +30,7 @@ public class DetailFragment extends Fragment {
 
         Intent intent = getActivity().getIntent();
         if (intent != null && intent.hasExtra("movie")) {
-            movie = (Movie) intent.getBundleExtra("movie").getParcelable("movieParcelable");
+            movie = intent.getBundleExtra("movie").getParcelable("movieParcelable");
         }
 
         getActivity().setTitle("");
@@ -45,9 +46,9 @@ public class DetailFragment extends Fragment {
 
         TextView movieReleaseDateView = (TextView) rootView.findViewById(R.id.detail_fragment_movie_release_date_textview);
         try {
-            movieReleaseDateView.append("\n" + movie.getFormattedReleaseDate());
+            movieReleaseDateView.setText(movie.getFormattedReleaseDate());
         } catch (ParseException e) {
-            movieReleaseDateView.append("\n" + movie.releaseDate);
+            movieReleaseDateView.setText(movie.releaseDate);
             e.printStackTrace();
         }
 

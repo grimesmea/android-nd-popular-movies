@@ -11,8 +11,8 @@
         android:theme="@style/AppTheme">
 
         <provider
-            android:authorities="com.gmail.grimesmea.android.popularmovies"
-            android:name=".data.MoviesProvider" />
+            android:name=".data.MoviesProvider"
+            android:authorities="com.gmail.grimesmea.android.popularmovies" />
 
         <activity
             android:name=".MainActivity"

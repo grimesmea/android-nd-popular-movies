@@ -76,19 +76,23 @@ public class TestUtilities extends AndroidTestCase {
         return returnContentValues;
     }
 
+    static TestContentObserver getTestContentObserver() {
+        return TestContentObserver.getTestContentObserver();
+    }
+
     static class TestContentObserver extends ContentObserver {
         final HandlerThread mHandlerTread;
         boolean mContentChanged;
+
+        private TestContentObserver(HandlerThread ht) {
+            super(new Handler(ht.getLooper()));
+            mHandlerTread = ht;
+        }
 
         static TestContentObserver getTestContentObserver() {
             HandlerThread ht = new HandlerThread("ContentObserverThread");
             ht.start();
             return new TestContentObserver(ht);
-        }
-
-        private TestContentObserver(HandlerThread ht) {
-            super(new Handler(ht.getLooper()));
-            mHandlerTread = ht;
         }
 
         @Override
@@ -113,9 +117,5 @@ public class TestUtilities extends AndroidTestCase {
         public void closeHandlerThread() {
             mHandlerTread.quit();
         }
-    }
-
-    static TestContentObserver getTestContentObserver() {
-        return TestContentObserver.getTestContentObserver();
     }
 }
