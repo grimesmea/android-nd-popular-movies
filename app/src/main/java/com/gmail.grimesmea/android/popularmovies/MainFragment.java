@@ -17,38 +17,27 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.ListView;
 
 import com.gmail.grimesmea.android.popularmovies.data.MoviesContract;
 
-/**
- * Encapsulates fetching the movie data and displaying it as a {@link ListView} layout.
- */
 public class MainFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     public final static String MOVIE_PARCELABLE_KEY = "com.gmail.grimesmea.anroid.popularmovies.movie_parcelable";
     static final int COL_MOVIE_ID = 0;
-    static final int COL_MOVIE_TITLE = 1;
-    static final int COL_MOVIE_SYNOPSIS = 2;
-    static final int COL_MOVIE_RELEASE_DATE = 3;
-    static final int COL_MOVIE_POPULARITY = 4;
-    static final int COL_MOVIE_RATING = 5;
-    static final int COL_MOVIE_POSTER_PATH = 6;
-    static final int COL_MOVIE_BACKDROP_PATH = 7;
-    static final int COL_FAVORITE = 8;
-    private static final int MOVIES_LOADER = 0;
-    private static final String[] FORECAST_COLUMNS = {
-            MoviesContract.MoviesEntry.TABLE_NAME + "." + MoviesContract.MoviesEntry._ID,
-            MoviesContract.MoviesEntry.COLUMN_MOVIE_TITLE,
-            MoviesContract.MoviesEntry.COLUMN_MOVIE_SYNOPSIS,
-            MoviesContract.MoviesEntry.COLUMN_MOVIE_RELEASE_DATE,
-            MoviesContract.MoviesEntry.COLUMN_MOVIE_POPULARITY,
-            MoviesContract.MoviesEntry.COLUMN_MOVIE_RATING,
-            MoviesContract.MoviesEntry.COLUMN_MOVIE_POSTER_PATH,
-            MoviesContract.MoviesEntry.COLUMN_MOVIE_BACKDROP_PATH,
-            MoviesContract.MoviesEntry.COLUMN_FAVORITE
-    };
+    static final int COL_MDB_ID = 1;
+    static final int COL_MOVIE_TITLE = 2;
+    static final int COL_MOVIE_SYNOPSIS = 3;
+    static final int COL_MOVIE_RELEASE_DATE = 4;
+    static final int COL_MOVIE_POPULARITY = 5;
+    static final int COL_MOVIE_RATING = 6;
+    static final int COL_MOVIE_POSTER_PATH = 7;
+    static final int COL_MOVIE_BACKDROP_PATH = 8;
+    static final int COL_FAVORITE = 9;
+
+    private static final int MOVIES_LOADER = 100;
+
     public MoviePosterAdapter movieAdapter;
+
     private boolean isSortedByPopularity = true;
     private String sortByPopularityQueryParameter = MoviesContract.MoviesEntry.TABLE_NAME + "." +
             MoviesContract.MoviesEntry.COLUMN_MOVIE_POPULARITY + " DESC";
@@ -71,9 +60,9 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
                 null,
                 null,
                 null,
-                sortByPopularityQueryParameter
+                null
         ).moveToNext()) {
-            updateMovies();
+            fetchMovies();
         }
 
         setHasOptionsMenu(true);
@@ -108,7 +97,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         return rootView;
     }
 
-    private void updateMovies() {
+    private void fetchMovies() {
         FetchMoviesTask moviesTask = new FetchMoviesTask(getActivity());
         moviesTask.execute();
     }

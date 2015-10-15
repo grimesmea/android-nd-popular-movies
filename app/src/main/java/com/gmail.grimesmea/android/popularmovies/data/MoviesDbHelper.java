@@ -16,7 +16,8 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         final String SQL_CREATE_MOVIES_TABLE = "CREATE TABLE " + MoviesContract.MoviesEntry.TABLE_NAME + " (" +
-                MoviesContract.MoviesEntry._ID + " INTEGER PRIMARY KEY," +
+                MoviesContract.MoviesEntry._ID + " INTEGER PRIMARY KEY, " +
+                MoviesContract.MoviesEntry.COLUMN_MDB_ID + " INTEGER UNIQUE NOT NULL, " +
                 MoviesContract.MoviesEntry.COLUMN_MOVIE_TITLE + " TEXT UNIQUE NOT NULL, " +
                 MoviesContract.MoviesEntry.COLUMN_MOVIE_SYNOPSIS + " TEXT NOT NULL, " +
                 MoviesContract.MoviesEntry.COLUMN_MOVIE_RELEASE_DATE + " REAL NOT NULL, " +
@@ -24,15 +25,27 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
                 MoviesContract.MoviesEntry.COLUMN_MOVIE_RATING + " REAL NOT NULL, " +
                 MoviesContract.MoviesEntry.COLUMN_MOVIE_POSTER_PATH + " TEXT UNIQUE NOT NULL, " +
                 MoviesContract.MoviesEntry.COLUMN_MOVIE_BACKDROP_PATH + " TEXT UNIQUE NOT NULL, " +
-                MoviesContract.MoviesEntry.COLUMN_FAVORITE + " INTEGER NOT NULL " +
+                MoviesContract.MoviesEntry.COLUMN_FAVORITE + " INTEGER NOT NULL" +
                 " );";
 
+        final String SQL_CREATE_REVIEWS_TABLE = "CREATE TABLE " + MoviesContract.ReviewsEntry.TABLE_NAME + " (" +
+                MoviesContract.ReviewsEntry._ID + " INTEGER PRIMARY KEY, " +
+                MoviesContract.MoviesEntry.COLUMN_MDB_ID + " INTEGER NOT NULL, " +
+                MoviesContract.ReviewsEntry.COLUMN_REVIEW_AUTHOR + " TEXT NOT NULL, " +
+                MoviesContract.ReviewsEntry.COLUMN_REVIEW_CONTENT + " TEXT NOT NULL, " +
+                "FOREIGN KEY(" + MoviesContract.ReviewsEntry.COLUMN_MDB_ID + ") REFERENCES " +
+                MoviesContract.MoviesEntry.TABLE_NAME + "(" +
+                MoviesContract.MoviesEntry.COLUMN_MDB_ID + ")" +
+                ");";
+
         db.execSQL(SQL_CREATE_MOVIES_TABLE);
+        db.execSQL(SQL_CREATE_REVIEWS_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + MoviesContract.MoviesEntry.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + MoviesContract.ReviewsEntry.TABLE_NAME);
         onCreate(db);
     }
 }

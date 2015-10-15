@@ -28,6 +28,8 @@ public class Movie implements Parcelable {
             return new Movie[size];
         }
     };
+
+    final static String MDB_ID = "id";
     final static String MDB_TITLE = "original_title";
     final static String MDB_SYNOPSIS = "overview";
     final static String MDB_RELEASE_DATE = "release_date";
@@ -35,6 +37,8 @@ public class Movie implements Parcelable {
     final static String MDB_RATING = "vote_average";
     final static String MDB_POSTER_PATH = "poster_path";
     final static String MDB_BACKDROP_PATH = "backdrop_path";
+
+    int mdbId;
     String title;
     String synopsis;
     String releaseDate;
@@ -46,6 +50,7 @@ public class Movie implements Parcelable {
 
     public Movie(JSONObject movieJson) throws JSONException {
         this(
+                movieJson.getInt(MDB_ID),
                 movieJson.getString(MDB_TITLE),
                 movieJson.getString(MDB_SYNOPSIS),
                 movieJson.getString(MDB_RELEASE_DATE),
@@ -57,21 +62,23 @@ public class Movie implements Parcelable {
         );
     }
 
-    public Movie(Cursor moviesCursor) {
+    public Movie(Cursor movieCursor) {
         this(
-                moviesCursor.getString(MainFragment.COL_MOVIE_TITLE),
-                moviesCursor.getString(MainFragment.COL_MOVIE_SYNOPSIS),
-                moviesCursor.getString(MainFragment.COL_MOVIE_RELEASE_DATE),
-                moviesCursor.getString(MainFragment.COL_MOVIE_POPULARITY),
-                moviesCursor.getString(MainFragment.COL_MOVIE_RATING),
-                moviesCursor.getString(MainFragment.COL_MOVIE_POSTER_PATH),
-                moviesCursor.getString(MainFragment.COL_MOVIE_BACKDROP_PATH),
-                getBooleanValue(moviesCursor.getInt(MainFragment.COL_FAVORITE))
+                movieCursor.getInt(MainFragment.COL_MDB_ID),
+                movieCursor.getString(MainFragment.COL_MOVIE_TITLE),
+                movieCursor.getString(MainFragment.COL_MOVIE_SYNOPSIS),
+                movieCursor.getString(MainFragment.COL_MOVIE_RELEASE_DATE),
+                movieCursor.getString(MainFragment.COL_MOVIE_POPULARITY),
+                movieCursor.getString(MainFragment.COL_MOVIE_RATING),
+                movieCursor.getString(MainFragment.COL_MOVIE_POSTER_PATH),
+                movieCursor.getString(MainFragment.COL_MOVIE_BACKDROP_PATH),
+                getBooleanValue(movieCursor.getInt(MainFragment.COL_FAVORITE))
         );
     }
 
-    public Movie(String title, String synopsis, String releaseDate, String popularity, String rating,
+    public Movie(int mdbId, String title, String synopsis, String releaseDate, String popularity, String rating,
                  String posterImagePath, String backdropPath, boolean isFavorite) {
+        this.mdbId = mdbId;
         this.title = title;
         this.synopsis = synopsis;
         this.releaseDate = releaseDate;
@@ -83,6 +90,7 @@ public class Movie implements Parcelable {
     }
 
     private Movie(Parcel parcel) {
+        mdbId = parcel.readInt();
         title = parcel.readString();
         synopsis = parcel.readString();
         releaseDate = parcel.readString();
@@ -101,6 +109,7 @@ public class Movie implements Parcelable {
     public ContentValues createContentValues() {
         ContentValues movieValues = new ContentValues();
 
+        movieValues.put(MoviesContract.MoviesEntry.COLUMN_MDB_ID, mdbId);
         movieValues.put(MoviesContract.MoviesEntry.COLUMN_MOVIE_TITLE, title);
         movieValues.put(MoviesContract.MoviesEntry.COLUMN_MOVIE_SYNOPSIS, synopsis);
         movieValues.put(MoviesContract.MoviesEntry.COLUMN_MOVIE_RELEASE_DATE, releaseDate);
@@ -120,6 +129,7 @@ public class Movie implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int flags) {
+        parcel.writeInt(mdbId);
         parcel.writeString(title);
         parcel.writeString(synopsis);
         parcel.writeString(releaseDate);

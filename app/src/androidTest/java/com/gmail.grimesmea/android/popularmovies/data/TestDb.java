@@ -13,42 +13,45 @@ public class TestDb extends AndroidTestCase {
     public static final String LOG_TAG = TestDb.class.getSimpleName();
 
     public void setUp() {
-        deleteDatabase();
+        TestUtilities.deleteDatabase(mContext);
     }
 
-    void deleteDatabase() {
-        mContext.deleteDatabase(MoviesDbHelper.DATABASE_NAME);
-    }
-
-    public void testCreateDb() throws Throwable {
+    public void testCreateDbWithMoviesAndReviewsTables() throws Throwable {
         final Set<String> tableNameHashSet = new HashSet<String>();
         tableNameHashSet.add(MoviesContract.MoviesEntry.TABLE_NAME);
+        tableNameHashSet.add(MoviesContract.ReviewsEntry.TABLE_NAME);
 
         SQLiteDatabase db = new MoviesDbHelper(
                 this.mContext).getWritableDatabase();
         assertEquals(true, db.isOpen());
 
         Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
-
         assertTrue("Error: The database has not been created correctly",
                 cursor.moveToFirst());
 
         do {
             tableNameHashSet.remove(cursor.getString(0));
         } while (cursor.moveToNext());
-
-
-        assertTrue("Error: Database was created without the movies entry table",
+        assertTrue("Error: Database was created without the movies entry and reviews entry tables",
                 tableNameHashSet.isEmpty());
 
-        cursor = db.rawQuery("PRAGMA table_info(" + MoviesContract.MoviesEntry.TABLE_NAME + ")",
-                null);
+        cursor.close();
+        db.close();
+    }
 
-        assertTrue("Error: Unable to query the database for table information",
+    public void testCreateMoviesTable() throws Throwable {
+        SQLiteDatabase db = new MoviesDbHelper(
+                this.mContext).getWritableDatabase();
+        assertEquals(true, db.isOpen());
+
+        Cursor cursor = db.rawQuery("PRAGMA table_info(" + MoviesContract.MoviesEntry.TABLE_NAME + ")",
+                null);
+        assertTrue("Error: Unable to query the database for movies table information",
                 cursor.moveToFirst());
 
         final Set<String> moviesColumnHashSet = new HashSet<String>();
         moviesColumnHashSet.add(MoviesContract.MoviesEntry._ID);
+        moviesColumnHashSet.add(MoviesContract.MoviesEntry.COLUMN_MDB_ID);
         moviesColumnHashSet.add(MoviesContract.MoviesEntry.COLUMN_MOVIE_TITLE);
         moviesColumnHashSet.add(MoviesContract.MoviesEntry.COLUMN_MOVIE_SYNOPSIS);
         moviesColumnHashSet.add(MoviesContract.MoviesEntry.COLUMN_MOVIE_POPULARITY);
@@ -62,20 +65,46 @@ public class TestDb extends AndroidTestCase {
             String columnName = cursor.getString(columnNameIndex);
             moviesColumnHashSet.remove(columnName);
         } while (cursor.moveToNext());
-
-        assertTrue("Error: The database doesn't contain all of the required movie entry columns",
+        assertTrue("Error: The movies table does not contain all of the required columns",
                 moviesColumnHashSet.isEmpty());
+
+        cursor.close();
+        db.close();
+    }
+
+    public void testCreateReviewsTable() throws Throwable {
+        SQLiteDatabase db = new MoviesDbHelper(
+                this.mContext).getWritableDatabase();
+        assertEquals(true, db.isOpen());
+
+        Cursor cursor = db.rawQuery("PRAGMA table_info(" + MoviesContract.ReviewsEntry.TABLE_NAME + ")",
+                null);
+        assertTrue("Error: Unable to query the database for reviews table information",
+                cursor.moveToFirst());
+
+        final Set<String> reviewsColumnHashSet = new HashSet<String>();
+        reviewsColumnHashSet.add(MoviesContract.ReviewsEntry.COLUMN_MDB_ID);
+        reviewsColumnHashSet.add(MoviesContract.ReviewsEntry.COLUMN_REVIEW_AUTHOR);
+        reviewsColumnHashSet.add(MoviesContract.ReviewsEntry.COLUMN_REVIEW_CONTENT);
+
+        int columnNameIndex = cursor.getColumnIndex("name");
+        do {
+            String columnName = cursor.getString(columnNameIndex);
+            reviewsColumnHashSet.remove(columnName);
+        } while (cursor.moveToNext());
+        assertTrue("Error: The reviews table does not contain all of the required columns",
+                reviewsColumnHashSet.isEmpty());
+
+        cursor.close();
         db.close();
     }
 
     public long testInsertMovie() {
         MoviesDbHelper dbHelper = new MoviesDbHelper(mContext);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues testMovieValues = TestUtilities.createMovieValues();
 
-        ContentValues testValues = TestUtilities.createMovieValues();
-
-        long movieRowId = db.insert(MoviesContract.MoviesEntry.TABLE_NAME, null, testValues);
-
+        long movieRowId = TestUtilities.insertMovieValuesIntoDb(db, testMovieValues);
         assertTrue("Error: Failed to insert test movies values", movieRowId != -1);
 
         Cursor cursor = db.query(
@@ -87,18 +116,48 @@ public class TestDb extends AndroidTestCase {
                 null,
                 null
         );
-
         assertTrue("Error: Query returned no records", cursor.moveToFirst());
 
 
         TestUtilities.validateCurrentRecord("testInsertMovie",
-                cursor, testValues);
-
+                cursor, testMovieValues);
         assertFalse("Error: More than one record returned by query",
                 cursor.moveToNext());
 
         cursor.close();
         db.close();
         return movieRowId;
+    }
+
+    public long testInsertReview() {
+        MoviesDbHelper dbHelper = new MoviesDbHelper(mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues testMovieValues = TestUtilities.createMovieValues();
+        ContentValues testReviewValues = TestUtilities.createReviewValues();
+
+        TestUtilities.insertMovieValuesIntoDb(db, testMovieValues);
+        long reviewRowId = TestUtilities.insertReviewValuesIntoDb(db, testReviewValues);
+        assertTrue("Error: Failed to insert test review values", reviewRowId != -1);
+
+        Cursor cursor = db.query(
+                MoviesContract.ReviewsEntry.TABLE_NAME,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+        assertTrue("Error: Query returned no records", cursor.moveToFirst());
+
+
+        TestUtilities.validateCurrentRecord("testInsertReview",
+                cursor, testReviewValues);
+        assertFalse("Error: More than one record returned by query",
+                cursor.moveToNext());
+
+        cursor.close();
+        db.close();
+        return reviewRowId;
     }
 }

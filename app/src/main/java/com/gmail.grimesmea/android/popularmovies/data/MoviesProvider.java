@@ -12,6 +12,9 @@ public class MoviesProvider extends ContentProvider {
     static final int MOVIES = 100;
     static final int MOVIE = 101;
     static final int FAVORITES = 200;
+    static final int REVIEWS = 300;
+    static final int REVIEW = 301;
+    static final int REVIEWS_FOR_MOVIE = 302;
     private static final UriMatcher uriMatcher = buildUriMatcher();
     private static final String movieSelection =
             MoviesContract.MoviesEntry.TABLE_NAME + "." +
@@ -19,6 +22,12 @@ public class MoviesProvider extends ContentProvider {
     private static final String favoritesSelection =
             MoviesContract.MoviesEntry.TABLE_NAME + "." +
                     MoviesContract.MoviesEntry.COLUMN_FAVORITE + " = 1";
+    private static final String reviewSelection =
+            MoviesContract.ReviewsEntry.TABLE_NAME + "." +
+                    MoviesContract.ReviewsEntry._ID + " = ?";
+    private static final String reviewsForMovieSelection =
+            MoviesContract.ReviewsEntry.TABLE_NAME + "." +
+                    MoviesContract.ReviewsEntry.COLUMN_MDB_ID + " = ?";
     private MoviesDbHelper moviesDbHelper;
 
     static UriMatcher buildUriMatcher() {
@@ -28,6 +37,9 @@ public class MoviesProvider extends ContentProvider {
         uriMatcher.addURI(authority, MoviesContract.PATH_MOVIES, MOVIES);
         uriMatcher.addURI(authority, MoviesContract.PATH_MOVIES + "/#", MOVIE);
         uriMatcher.addURI(authority, MoviesContract.PATH_MOVIES + "/favoriteMovies", FAVORITES);
+        uriMatcher.addURI(authority, MoviesContract.PATH_REVIEWS, REVIEWS);
+        uriMatcher.addURI(authority, MoviesContract.PATH_REVIEWS + "/#", REVIEW);
+        uriMatcher.addURI(authority, MoviesContract.PATH_REVIEWS + "/reviewsForMovie", REVIEWS_FOR_MOVIE);
         return uriMatcher;
     }
 
@@ -79,6 +91,42 @@ public class MoviesProvider extends ContentProvider {
                 );
                 break;
             }
+            case REVIEWS: {
+                cursor = moviesDbHelper.getReadableDatabase().query(
+                        MoviesContract.ReviewsEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
+            }
+            case REVIEW: {
+                cursor = moviesDbHelper.getReadableDatabase().query(
+                        MoviesContract.ReviewsEntry.TABLE_NAME,
+                        projection,
+                        reviewSelection,
+                        new String[]{uri.getPathSegments().get(uri.getPathSegments().size() - 1)},
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
+            }
+            case REVIEWS_FOR_MOVIE: {
+                cursor = moviesDbHelper.getReadableDatabase().query(
+                        MoviesContract.ReviewsEntry.TABLE_NAME,
+                        projection,
+                        reviewsForMovieSelection,
+                        new String[]{uri.getQueryParameter(MoviesContract.ReviewsEntry.COLUMN_MDB_ID)},
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
+            }
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -97,6 +145,12 @@ public class MoviesProvider extends ContentProvider {
                 return MoviesContract.MoviesEntry.CONTENT_ITEM_TYPE;
             case FAVORITES:
                 return MoviesContract.MoviesEntry.CONTENT_TYPE;
+            case REVIEWS:
+                return MoviesContract.ReviewsEntry.CONTENT_TYPE;
+            case REVIEW:
+                return MoviesContract.ReviewsEntry.CONTENT_ITEM_TYPE;
+            case REVIEWS_FOR_MOVIE:
+                return MoviesContract.ReviewsEntry.CONTENT_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -113,6 +167,14 @@ public class MoviesProvider extends ContentProvider {
                 long _id = db.insert(MoviesContract.MoviesEntry.TABLE_NAME, null, values);
                 if (_id > 0)
                     returnUri = MoviesContract.MoviesEntry.buildMovieUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
+            case REVIEWS: {
+                long _id = db.insert(MoviesContract.ReviewsEntry.TABLE_NAME, null, values);
+                if (_id > 0)
+                    returnUri = MoviesContract.ReviewsEntry.buildReviewUri(_id);
                 else
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
@@ -137,15 +199,50 @@ public class MoviesProvider extends ContentProvider {
 
         switch (match) {
             case MOVIES: {
-                rowsDeleted = db.delete(MoviesContract.MoviesEntry.TABLE_NAME, selection, selectionArgs);
+                rowsDeleted = db.delete(
+                        MoviesContract.MoviesEntry.TABLE_NAME,
+                        selection,
+                        selectionArgs
+                );
                 break;
             }
             case MOVIE: {
-                rowsDeleted = db.delete(MoviesContract.MoviesEntry.TABLE_NAME, movieSelection, new String[]{uri.getPathSegments().get(uri.getPathSegments().size() - 1)});
+                rowsDeleted = db.delete(
+                        MoviesContract.MoviesEntry.TABLE_NAME,
+                        movieSelection,
+                        new String[]{uri.getPathSegments().get(uri.getPathSegments().size() - 1)}
+                );
                 break;
             }
             case FAVORITES: {
-                rowsDeleted = db.delete(MoviesContract.MoviesEntry.TABLE_NAME, favoritesSelection, selectionArgs);
+                rowsDeleted = db.delete(
+                        MoviesContract.MoviesEntry.TABLE_NAME,
+                        favoritesSelection,
+                        selectionArgs
+                );
+                break;
+            }
+            case REVIEWS: {
+                rowsDeleted = db.delete(
+                        MoviesContract.ReviewsEntry.TABLE_NAME,
+                        selection,
+                        selectionArgs
+                );
+                break;
+            }
+            case REVIEW: {
+                rowsDeleted = db.delete(
+                        MoviesContract.ReviewsEntry.TABLE_NAME, reviewSelection,
+                        new String[]{uri.getPathSegments().get(uri.getPathSegments().size() - 1)}
+                );
+                break;
+            }
+            case REVIEWS_FOR_MOVIE: {
+                rowsDeleted = db.delete(
+                        MoviesContract.ReviewsEntry.TABLE_NAME,
+                        reviewsForMovieSelection,
+                        new String[]{uri.getQueryParameter(MoviesContract.ReviewsEntry.COLUMN_MDB_ID)}
+                );
                 break;
             }
             default:
@@ -166,15 +263,57 @@ public class MoviesProvider extends ContentProvider {
 
         switch (match) {
             case MOVIES: {
-                rowsUpdated = db.update(MoviesContract.MoviesEntry.TABLE_NAME, values, selection, selectionArgs);
+                rowsUpdated = db.update(
+                        MoviesContract.MoviesEntry.TABLE_NAME,
+                        values,
+                        selection,
+                        selectionArgs
+                );
                 break;
             }
             case MOVIE: {
-                rowsUpdated = db.update(MoviesContract.MoviesEntry.TABLE_NAME, values, movieSelection, new String[]{uri.getPathSegments().get(uri.getPathSegments().size() - 1)});
+                rowsUpdated = db.update(
+                        MoviesContract.MoviesEntry.TABLE_NAME,
+                        values,
+                        movieSelection,
+                        new String[]{uri.getPathSegments().get(uri.getPathSegments().size() - 1)}
+                );
                 break;
             }
             case FAVORITES: {
-                rowsUpdated = db.update(MoviesContract.MoviesEntry.TABLE_NAME, values, favoritesSelection, selectionArgs);
+                rowsUpdated = db.update(
+                        MoviesContract.MoviesEntry.TABLE_NAME,
+                        values,
+                        favoritesSelection,
+                        selectionArgs
+                );
+                break;
+            }
+            case REVIEWS: {
+                rowsUpdated = db.update(
+                        MoviesContract.ReviewsEntry.TABLE_NAME,
+                        values,
+                        selection,
+                        selectionArgs
+                );
+                break;
+            }
+            case REVIEW: {
+                rowsUpdated = db.update(
+                        MoviesContract.ReviewsEntry.TABLE_NAME,
+                        values,
+                        reviewSelection,
+                        new String[]{uri.getPathSegments().get(uri.getPathSegments().size() - 1)}
+                );
+                break;
+            }
+            case REVIEWS_FOR_MOVIE: {
+                rowsUpdated = db.update(
+                        MoviesContract.ReviewsEntry.TABLE_NAME,
+                        values,
+                        reviewsForMovieSelection,
+                        new String[]{uri.getQueryParameter(MoviesContract.ReviewsEntry.COLUMN_MDB_ID)}
+                );
                 break;
             }
             default:
@@ -191,11 +330,12 @@ public class MoviesProvider extends ContentProvider {
     public int bulkInsert(Uri uri, ContentValues[] values) {
         final SQLiteDatabase db = moviesDbHelper.getWritableDatabase();
         final int match = uriMatcher.match(uri);
+        int returnCount;
 
         switch (match) {
             case MOVIES:
                 db.beginTransaction();
-                int returnCount = 0;
+                returnCount = 0;
                 try {
                     for (ContentValues value : values) {
                         long _id = db.insert(MoviesContract.MoviesEntry.TABLE_NAME, null, value);
@@ -209,6 +349,23 @@ public class MoviesProvider extends ContentProvider {
                 }
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
+            case REVIEWS:
+                db.beginTransaction();
+                returnCount = 0;
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insert(MoviesContract.ReviewsEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+
             default:
                 return super.bulkInsert(uri, values);
         }
