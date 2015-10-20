@@ -27,8 +27,6 @@ public class FetchMovieVideosTask extends AsyncTask<Void, Void, Video[]> {
     private final Context context;
     private final int mdbId;
 
-    private String[] movieVideossArray;
-
     public FetchMovieVideosTask(Context context, int mdbId) {
         this.context = context;
         this.mdbId = mdbId;
@@ -53,7 +51,6 @@ public class FetchMovieVideosTask extends AsyncTask<Void, Void, Video[]> {
                     .build();
 
             URL url = new URL(builtUri.toString());
-            Log.d(LOG_TAG, url.toString());
 
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
@@ -76,7 +73,6 @@ public class FetchMovieVideosTask extends AsyncTask<Void, Void, Video[]> {
             }
 
             videosJsonStr = buffer.toString();
-            Log.d(LOG_TAG, videosJsonStr);
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
             return null;
@@ -115,8 +111,6 @@ public class FetchMovieVideosTask extends AsyncTask<Void, Void, Video[]> {
             videosArray[i] = new Video(videoJson, mdbId);
         }
 
-        Log.d(LOG_TAG, videosJsonArray.length() + " videos fetched");
-
         return videosArray;
     }
 
@@ -135,8 +129,6 @@ public class FetchMovieVideosTask extends AsyncTask<Void, Void, Video[]> {
             insertedRows = context.getContentResolver().
                     bulkInsert(MoviesContract.VideosEntry.CONTENT_URI, videosContentValuesArray);
         }
-
-        Log.d(LOG_TAG, insertedRows + " rows inserted");
 
         return insertedRows;
     }

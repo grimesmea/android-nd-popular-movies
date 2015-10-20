@@ -140,14 +140,27 @@ public class Movie implements Parcelable {
         parcel.writeByte((byte) (isFavorite ? 1 : 0));
     }
 
-    public String getImageUrl(String imagePath) {
+    public String getPosterImageUrl() {
         final String MOVIEDBPOSTER_BASE_URL = "http://image.tmdb.org/t/p/";
 
         String sizeParam = "w500";
 
         Uri builtUri = Uri.parse(MOVIEDBPOSTER_BASE_URL).buildUpon()
                 .appendPath(sizeParam)
-                .appendEncodedPath(imagePath)
+                .appendEncodedPath(posterImagePath)
+                .build();
+
+        return builtUri.toString();
+    }
+
+    public String getBackdropImageUrl() {
+        final String MOVIEDBPOSTER_BASE_URL = "http://image.tmdb.org/t/p/";
+
+        String sizeParam = "w500";
+
+        Uri builtUri = Uri.parse(MOVIEDBPOSTER_BASE_URL).buildUpon()
+                .appendPath(sizeParam)
+                .appendEncodedPath(backdropImagePath)
                 .build();
 
         return builtUri.toString();

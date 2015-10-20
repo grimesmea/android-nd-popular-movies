@@ -27,8 +27,6 @@ public class FetchMovieReviewsTask extends AsyncTask<Void, Void, Review[]> {
     private final Context context;
     private final int mdbId;
 
-    private String[] movieReviewsArray;
-
     public FetchMovieReviewsTask(Context context, int mdbId) {
         this.context = context;
         this.mdbId = mdbId;
@@ -76,7 +74,6 @@ public class FetchMovieReviewsTask extends AsyncTask<Void, Void, Review[]> {
             }
 
             reviewsJsonStr = buffer.toString();
-            Log.d(LOG_TAG, reviewsJsonStr);
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
             return null;
@@ -115,8 +112,6 @@ public class FetchMovieReviewsTask extends AsyncTask<Void, Void, Review[]> {
             reviewsArray[i] = new Review(reviewJson, mdbId);
         }
 
-        Log.d(LOG_TAG, reviewsJsonArray.length() + " reviews fetched");
-
         return reviewsArray;
     }
 
@@ -135,8 +130,6 @@ public class FetchMovieReviewsTask extends AsyncTask<Void, Void, Review[]> {
             insertedRows = context.getContentResolver().
                     bulkInsert(MoviesContract.ReviewsEntry.CONTENT_URI, reviewsContentValuesArray);
         }
-
-        Log.d(LOG_TAG, insertedRows + " rows inserted");
 
         return insertedRows;
     }

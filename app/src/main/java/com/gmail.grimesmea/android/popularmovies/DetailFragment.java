@@ -1,8 +1,10 @@
 package com.gmail.grimesmea.android.popularmovies;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -107,10 +109,10 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         reviewsListView.setAdapter(reviewAdapter);
 
         ImageView backdropView = (ImageView) rootView.findViewById(R.id.detail_fragment_backdrop_imageview);
-        Picasso.with(getActivity()).load(movie.getImageUrl(movie.backdropImagePath)).into(backdropView);
+        Picasso.with(getActivity()).load(movie.getBackdropImageUrl()).into(backdropView);
 
         ImageView posterView = (ImageView) rootView.findViewById(R.id.detail_fragment_poster_imageview);
-        Picasso.with(getActivity()).load(movie.getImageUrl(movie.posterImagePath)).into(posterView);
+        Picasso.with(getActivity()).load(movie.getPosterImageUrl()).into(posterView);
 
         TextView movieTitleView = (TextView) rootView.findViewById(R.id.detail_fragment_movie_title_textview);
         movieTitleView.setText(movie.title);
@@ -193,17 +195,36 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         }
     }
 
-    private void addVideosTextView(Cursor cursor) {
+    private void addVideosTextView(final Cursor cursor) {
         ViewGroup containerView = (ViewGroup) getView().findViewById(R.id.movie_videos_container);
 
         if (cursor.moveToFirst() && cursor.getCount() >= 1) {
             do {
-                Video video = new Video(cursor);
+                final Video video = new Video(cursor);
                 View v = getLayoutInflater(null).inflate(R.layout.list_item_video, null);
-                View rootView = v.getRootView();
+                final View rootView = v.getRootView();
                 TextView videoName = (TextView) v.findViewById(R.id.list_item_video_textview);
                 videoName.setText(video.name);
+                videoName.setTag(video);
+
                 containerView.addView(rootView);
+
+                rootView.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View view) {
+                        try {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(
+                                    "vnd.youtube:" + video.key));
+                            startActivity(intent);
+                        } catch (ActivityNotFoundException e) {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(
+                                    video.getVideoUrl()));
+                            startActivity(intent);
+                        }
+                    }
+                });
+
             } while (cursor.moveToNext());
 
         }

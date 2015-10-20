@@ -29,6 +29,6 @@ public class MoviePosterAdapter extends CursorAdapter {
     public void bindView(View view, Context context, Cursor cursor) {
         ImageView posterView = (ImageView) view;
         Movie movie = new Movie(cursor);
-        Picasso.with(context).load(movie.getImageUrl(movie.posterImagePath)).into(posterView);
+        Picasso.with(context).load(movie.getPosterImageUrl()).into(posterView);
     }
 }

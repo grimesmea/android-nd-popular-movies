@@ -2,6 +2,7 @@ package com.gmail.grimesmea.android.popularmovies;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.net.Uri;
 
 import com.gmail.grimesmea.android.popularmovies.data.MoviesContract;
 
@@ -66,5 +67,15 @@ public class Video {
         videoValues.put(MoviesContract.VideosEntry.COLUMN_VIDEO_KEY, key);
 
         return videoValues;
+    }
+
+    public String getVideoUrl() {
+        final String YOUTUBE_BASE_URL = "https://www.youtube.com/watch";
+
+        Uri builtUri = Uri.parse(YOUTUBE_BASE_URL).buildUpon()
+                .appendEncodedPath(key)
+                .build();
+
+        return builtUri.toString();
     }
 }
