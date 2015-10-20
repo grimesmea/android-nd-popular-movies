@@ -11,4 +11,6 @@
     <string name="sort_by_label_rating">Rating</string>
     <string name="release_date_label">Release Date:</string>
     <string name="reviews_label">Reviews</string>
+    <string name="video_label">Videos</string>
+    <string name="videos_label">Trailers</string>
 </resources>

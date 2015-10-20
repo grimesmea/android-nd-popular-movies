@@ -46,6 +46,14 @@ public class TestUtilities extends AndroidTestCase {
         );
     }
 
+    static void deleteVideosRecordsFromProvider(Context context) {
+        context.getContentResolver().delete(
+                MoviesContract.VideosEntry.CONTENT_URI,
+                null,
+                null
+        );
+    }
+
     static void deleteMoviesRecordsFromProvider(Context context) {
         context.getContentResolver().delete(
                 MoviesContract.MoviesEntry.CONTENT_URI,
@@ -56,6 +64,7 @@ public class TestUtilities extends AndroidTestCase {
 
     static void deleteAllRecordsFromProvider(Context context) {
         deleteReviewsRecordsFromProvider(context);
+        deleteVideosRecordsFromProvider(context);
         deleteMoviesRecordsFromProvider(context);
     }
 
@@ -115,12 +124,45 @@ public class TestUtilities extends AndroidTestCase {
         return returnContentValues;
     }
 
+    static ContentValues createVideoValues(int i) {
+        ContentValues videoValues = new ContentValues();
+
+        videoValues.put(MoviesContract.VideosEntry.COLUMN_MDB_ID, TEST_MDB_ID + i);
+        videoValues.put(MoviesContract.VideosEntry.COLUMN_VIDEO_TYPE, TEST_REVIEW_AUTHOR + i);
+        videoValues.put(MoviesContract.VideosEntry.COLUMN_VIDEO_NAME, TEST_REVIEW_CONTENT + i);
+        videoValues.put(MoviesContract.VideosEntry.COLUMN_VIDEO_SIZE, TEST_REVIEW_CONTENT + i);
+        videoValues.put(MoviesContract.VideosEntry.COLUMN_VIDEO_SITE, TEST_REVIEW_CONTENT + i);
+        videoValues.put(MoviesContract.VideosEntry.COLUMN_VIDEO_KEY, TEST_REVIEW_CONTENT + i);
+
+
+        return videoValues;
+    }
+
+    static ContentValues createVideoValues() {
+        return createVideoValues(0);
+    }
+
+    static ContentValues[] createBulkInsertVideosValues() {
+        ContentValues[] returnContentValues = new ContentValues[BULK_INSERT_RECORDS_TO_INSERT];
+
+        for (int i = 0; i < BULK_INSERT_RECORDS_TO_INSERT; i++) {
+            ContentValues videoValues = createVideoValues(i);
+            returnContentValues[i] = videoValues;
+        }
+
+        return returnContentValues;
+    }
+
     static long insertMovieValuesIntoDb(SQLiteDatabase db, ContentValues contentValues) {
         return db.insert(MoviesContract.MoviesEntry.TABLE_NAME, null, contentValues);
     }
 
     static long insertReviewValuesIntoDb(SQLiteDatabase db, ContentValues contentValues) {
         return db.insert(MoviesContract.ReviewsEntry.TABLE_NAME, null, contentValues);
+    }
+
+    static long insertVideoValuesIntoDb(SQLiteDatabase db, ContentValues contentValues) {
+        return db.insert(MoviesContract.VideosEntry.TABLE_NAME, null, contentValues);
     }
 
     static long insertMoviesIntoProvider(Context context, ContentValues contentValues) {
@@ -150,6 +192,21 @@ public class TestUtilities extends AndroidTestCase {
 
         return ContentUris.parseId(reviewUri);
     }
+
+    static long insertVideosIntoProvider(Context context, ContentValues contentValues) {
+        TestUtilities.TestContentObserver testContentObserver = TestUtilities.getTestContentObserver();
+        context.getContentResolver().registerContentObserver(MoviesContract.VideosEntry.CONTENT_URI, true, testContentObserver);
+
+        Uri reviewUri = context.getContentResolver().insert(MoviesContract.VideosEntry.CONTENT_URI, contentValues);
+
+        testContentObserver.waitForNotificationOrFail();
+
+        context.getContentResolver().unregisterContentObserver(testContentObserver);
+        testContentObserver.closeHandlerThread();
+
+        return ContentUris.parseId(reviewUri);
+    }
+
 
     static void validateCursor(String cursorSource, Cursor valueCursor, ContentValues expectedValues) {
         assertTrue("Error: Empty cursor returned by " + cursorSource, valueCursor.moveToFirst());

@@ -35,6 +35,20 @@ public class TestProvider extends AndroidTestCase {
         cursor.close();
     }
 
+    public void testDeleteRVideosRecordsFromProvider() {
+        TestUtilities.deleteVideosRecordsFromProvider(mContext);
+
+        Cursor cursor = mContext.getContentResolver().query(
+                MoviesContract.VideosEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        assertEquals("Error: Records not deleted from Videos table during delete", 0, cursor.getCount());
+        cursor.close();
+    }
+
     public void testDeleteMoviesRecordsFromProvider() {
         TestUtilities.deleteMoviesRecordsFromProvider(mContext);
 
@@ -90,15 +104,27 @@ public class TestProvider extends AndroidTestCase {
         assertEquals("Error: the ReviewsEntry reviewsForMovie URI should return MoviesEntry.CONTENT_TYPE",
                 MoviesContract.ReviewsEntry.CONTENT_TYPE, reviewsForMovieUriType);
 
+        String videosUriType = mContext.getContentResolver().getType(MoviesContract.VideosEntry.CONTENT_URI);
+        assertEquals("Error: the VideosEntry CONTENT_URI should return VideosEntry.CONTENT_TYPE",
+                MoviesContract.VideosEntry.CONTENT_TYPE, videosUriType);
+
+        String videoUriType = mContext.getContentResolver().getType(MoviesContract.VideosEntry.buildVideoUri(1));
+        assertEquals("Error: the VideosEntry review URI should return VideosEntry.CONTENT_ITEM_TYPE",
+                MoviesContract.VideosEntry.CONTENT_ITEM_TYPE, videoUriType);
+
+        String videosForMovieUriType = mContext.getContentResolver().getType(MoviesContract.VideosEntry.buildVideosForMovieUri(1));
+        assertEquals("Error: the VideosEntry reviewsForMovie URI should return VideosEntry.CONTENT_TYPE",
+                MoviesContract.VideosEntry.CONTENT_TYPE, videosForMovieUriType);
+
     }
 
     public void testInsertMovies() {
         ContentValues testValues = TestUtilities.createMovieValues(2);
 
         TestUtilities.deleteAllRecordsFromProvider(mContext);
-        long movieRowId = TestUtilities.insertMoviesIntoProvider(mContext, testValues);
+        long rowId = TestUtilities.insertMoviesIntoProvider(mContext, testValues);
 
-        assertTrue(movieRowId != -1);
+        assertTrue(rowId != -1);
 
         Cursor cursor = mContext.getContentResolver().query(
                 MoviesEntry.CONTENT_URI,
@@ -116,9 +142,9 @@ public class TestProvider extends AndroidTestCase {
         ContentValues testValues = TestUtilities.createReviewValues(2);
 
         TestUtilities.deleteAllRecordsFromProvider(mContext);
-        long reviewRowId = TestUtilities.insertReviewsIntoProvider(mContext, testValues);
+        long rowId = TestUtilities.insertReviewsIntoProvider(mContext, testValues);
 
-        assertTrue(reviewRowId != -1);
+        assertTrue(rowId != -1);
 
         Cursor cursor = mContext.getContentResolver().query(
                 MoviesContract.ReviewsEntry.CONTENT_URI,
@@ -133,6 +159,27 @@ public class TestProvider extends AndroidTestCase {
         cursor.close();
     }
 
+    public void testInsertVideos() {
+        ContentValues testValues = TestUtilities.createVideoValues(2);
+
+        TestUtilities.deleteAllRecordsFromProvider(mContext);
+        long rowId = TestUtilities.insertVideosIntoProvider(mContext, testValues);
+
+        assertTrue(rowId != -1);
+
+        Cursor cursor = mContext.getContentResolver().query(
+                MoviesContract.VideosEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+
+        TestUtilities.validateCursor("videos update ", cursor, testValues);
+
+        cursor.close();
+    }
+
     public void testMoviesQuery() {
         MoviesDbHelper dbHelper = new MoviesDbHelper(mContext);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -140,31 +187,31 @@ public class TestProvider extends AndroidTestCase {
         TestUtilities.deleteAllRecordsFromProvider(mContext);
         ContentValues testValues = TestUtilities.createMovieValues();
 
-        long movieRowId = db.insert(MoviesContract.MoviesEntry.TABLE_NAME, null, testValues);
-        assertTrue("Error: Failed to insert test movies values", movieRowId != -1);
+        long rowId = db.insert(MoviesContract.MoviesEntry.TABLE_NAME, null, testValues);
+        assertTrue("Error: Failed to insert test movies values", rowId != -1);
 
         // Test with MOVIES URI
-        Cursor movieCursor = mContext.getContentResolver().query(
+        Cursor cursor = mContext.getContentResolver().query(
                 MoviesEntry.CONTENT_URI,
                 null,
                 null,
                 null,
                 null
         );
-        TestUtilities.validateCursor("basic movies query ", movieCursor, testValues);
+        TestUtilities.validateCursor("basic movies query ", cursor, testValues);
 
         // Test with MOVIE URI
-        movieCursor = mContext.getContentResolver().query(
-                MoviesEntry.buildMovieUri(movieRowId),
+        cursor = mContext.getContentResolver().query(
+                MoviesEntry.buildMovieUri(rowId),
                 null,
                 null,
                 null,
                 null
         );
-        TestUtilities.validateCursor("movie by id query ", movieCursor, testValues);
+        TestUtilities.validateCursor("movie by id query ", cursor, testValues);
 
         // Test with FAVORITES URI
-        movieCursor = mContext.getContentResolver().query(
+        cursor = mContext.getContentResolver().query(
                 MoviesEntry.buildFavoriteMoviesUri(),
                 null,
                 null,
@@ -172,9 +219,9 @@ public class TestProvider extends AndroidTestCase {
                 null
         );
 
-        TestUtilities.validateCursor("favorites query", movieCursor, testValues);
+        TestUtilities.validateCursor("favorites query", cursor, testValues);
 
-        movieCursor.close();
+        cursor.close();
         db.close();
     }
 
@@ -186,40 +233,85 @@ public class TestProvider extends AndroidTestCase {
         ContentValues testValues = TestUtilities.createReviewValues();
         int mdbIdTestValue = TestUtilities.TEST_MDB_ID;
 
-        long reviewRowId = TestUtilities.insertReviewsIntoProvider(mContext, testValues);
-        assertTrue("Error: Failed to insert test reviews values", reviewRowId != -1);
+        long rowId = TestUtilities.insertReviewsIntoProvider(mContext, testValues);
+        assertTrue("Error: Failed to insert test reviews values", rowId != -1);
 
         // Test with REVIEWS URI
-        Cursor reviewCursor = mContext.getContentResolver().query(
+        Cursor cursor = mContext.getContentResolver().query(
                 MoviesContract.ReviewsEntry.CONTENT_URI,
                 null,
                 null,
                 null,
                 null
         );
-        TestUtilities.validateCursor("reviews query ", reviewCursor, testValues);
+        TestUtilities.validateCursor("reviews query ", cursor, testValues);
 
         // Test with REVIEW URI
-        reviewCursor = mContext.getContentResolver().query(
-                MoviesContract.ReviewsEntry.buildReviewUri(reviewRowId),
+        cursor = mContext.getContentResolver().query(
+                MoviesContract.ReviewsEntry.buildReviewUri(rowId),
                 null,
                 null,
                 null,
                 null
         );
-        TestUtilities.validateCursor("review by id query", reviewCursor, testValues);
+        TestUtilities.validateCursor("review by id query", cursor, testValues);
 
         // Test with REVIEWS_FOR_MOVIE URI
-        reviewCursor = mContext.getContentResolver().query(
+        cursor = mContext.getContentResolver().query(
                 MoviesContract.ReviewsEntry.buildReviewsForMovieUri(mdbIdTestValue),
                 null,
                 null,
                 null,
                 null
         );
-        TestUtilities.validateCursor("reviews for movie query ", reviewCursor, testValues);
+        TestUtilities.validateCursor("reviews for movie query ", cursor, testValues);
 
-        reviewCursor.close();
+        cursor.close();
+        db.close();
+    }
+
+    public void testVideosQuery() {
+        MoviesDbHelper dbHelper = new MoviesDbHelper(mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        TestUtilities.deleteAllRecordsFromProvider(mContext);
+        ContentValues testValues = TestUtilities.createVideoValues();
+        int mdbIdTestValue = TestUtilities.TEST_MDB_ID;
+
+        long rowId = TestUtilities.insertVideosIntoProvider(mContext, testValues);
+        assertTrue("Error: Failed to insert test videos values", rowId != -1);
+
+        // Test with VIDEOS URI
+        Cursor cursor = mContext.getContentResolver().query(
+                MoviesContract.VideosEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        TestUtilities.validateCursor("videos query ", cursor, testValues);
+
+        // Test with VIDEO URI
+        cursor = mContext.getContentResolver().query(
+                MoviesContract.VideosEntry.buildVideoUri(rowId),
+                null,
+                null,
+                null,
+                null
+        );
+        TestUtilities.validateCursor("video by id query", cursor, testValues);
+
+        // Test with VIDEOS_FOR_MOVIE URI
+        cursor = mContext.getContentResolver().query(
+                MoviesContract.VideosEntry.buildVideosForMovieUri(mdbIdTestValue),
+                null,
+                null,
+                null,
+                null
+        );
+        TestUtilities.validateCursor("videos for movie query ", cursor, testValues);
+
+        cursor.close();
         db.close();
     }
 
@@ -246,7 +338,9 @@ public class TestProvider extends AndroidTestCase {
 
         // Test with MOVIES URI
         int count = mContext.getContentResolver().update(
-                MoviesEntry.CONTENT_URI, updatedValues, MoviesEntry._ID + "= ?",
+                MoviesEntry.CONTENT_URI,
+                updatedValues,
+                MoviesEntry._ID + "= ?",
                 new String[]{Long.toString(movieRowId)}
         );
         assertEquals(1, count);
@@ -267,7 +361,10 @@ public class TestProvider extends AndroidTestCase {
         updatedValues.put(MoviesEntry.COLUMN_MOVIE_TITLE, "Updated Test Movie Title 2");
 
         count = mContext.getContentResolver().update(
-                MoviesEntry.buildMovieUri(movieRowId), updatedValues, null, null
+                MoviesEntry.buildMovieUri(movieRowId),
+                updatedValues,
+                null,
+                null
         );
         assertEquals(1, count);
         testContentObserver.waitForNotificationOrFail();
@@ -287,7 +384,10 @@ public class TestProvider extends AndroidTestCase {
         updatedValues.put(MoviesEntry.COLUMN_MOVIE_TITLE, "Updated Test Movie Title 3");
 
         count = mContext.getContentResolver().update(
-                MoviesEntry.buildFavoriteMoviesUri(), updatedValues, null, null
+                MoviesEntry.buildFavoriteMoviesUri(),
+                updatedValues,
+                null,
+                null
         );
         assertEquals(1, count);
         testContentObserver.waitForNotificationOrFail();
@@ -312,11 +412,11 @@ public class TestProvider extends AndroidTestCase {
         int mdbIdTestValue = TestUtilities.TEST_MDB_ID;
 
         TestUtilities.deleteAllRecordsFromProvider(mContext);
-        long reviewRowId = TestUtilities.insertReviewsIntoProvider(mContext, testValues);
-        assertTrue("Error: Failed to insert test review values", reviewRowId != -1);
+        long rowId = TestUtilities.insertReviewsIntoProvider(mContext, testValues);
+        assertTrue("Error: Failed to insert test review values", rowId != -1);
 
         ContentValues updatedValues = new ContentValues(testValues);
-        updatedValues.put(MoviesContract.ReviewsEntry._ID, reviewRowId);
+        updatedValues.put(MoviesContract.ReviewsEntry._ID, rowId);
         updatedValues.put(MoviesContract.ReviewsEntry.COLUMN_REVIEW_AUTHOR, "Updated Review Author");
 
         Cursor cursor = mContext.getContentResolver().query(
@@ -331,8 +431,10 @@ public class TestProvider extends AndroidTestCase {
 
         // Test with REVIEWS URI
         int count = mContext.getContentResolver().update(
-                MoviesContract.ReviewsEntry.CONTENT_URI, updatedValues, MoviesContract.ReviewsEntry._ID + "= ?",
-                new String[]{Long.toString(reviewRowId)}
+                MoviesContract.ReviewsEntry.CONTENT_URI,
+                updatedValues,
+                MoviesContract.ReviewsEntry._ID + "= ?",
+                new String[]{Long.toString(rowId)}
         );
         assertEquals(1, count);
         testContentObserver.waitForNotificationOrFail();
@@ -352,7 +454,10 @@ public class TestProvider extends AndroidTestCase {
         updatedValues.put(MoviesContract.ReviewsEntry.COLUMN_REVIEW_AUTHOR, "Updated Review Author 2");
 
         count = mContext.getContentResolver().update(
-                MoviesContract.ReviewsEntry.buildReviewUri(reviewRowId), updatedValues, null, null
+                MoviesContract.ReviewsEntry.buildReviewUri(rowId),
+                updatedValues,
+                null,
+                null
         );
         assertEquals(1, count);
         testContentObserver.waitForNotificationOrFail();
@@ -372,7 +477,10 @@ public class TestProvider extends AndroidTestCase {
         updatedValues.put(MoviesContract.ReviewsEntry.COLUMN_REVIEW_AUTHOR, "Updated Review Author 3");
 
         count = mContext.getContentResolver().update(
-                MoviesContract.ReviewsEntry.buildReviewsForMovieUri(mdbIdTestValue), updatedValues, null, null
+                MoviesContract.ReviewsEntry.buildReviewsForMovieUri(mdbIdTestValue),
+                updatedValues,
+                null,
+                null
         );
         assertEquals(1, count);
         testContentObserver.waitForNotificationOrFail();
@@ -392,16 +500,109 @@ public class TestProvider extends AndroidTestCase {
         cursor.close();
     }
 
+    public void testUpdateVideos() {
+        ContentValues testValues = TestUtilities.createVideoValues();
+        int mdbIdTestValue = TestUtilities.TEST_MDB_ID;
+
+        TestUtilities.deleteAllRecordsFromProvider(mContext);
+        long rowId = TestUtilities.insertVideosIntoProvider(mContext, testValues);
+        assertTrue("Error: Failed to insert test video values", rowId != -1);
+
+        ContentValues updatedValues = new ContentValues(testValues);
+        updatedValues.put(MoviesContract.VideosEntry._ID, rowId);
+        updatedValues.put(MoviesContract.VideosEntry.COLUMN_VIDEO_NAME, "Updated Video Name");
+
+        Cursor cursor = mContext.getContentResolver().query(
+                MoviesContract.VideosEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        TestUtilities.TestContentObserver testContentObserver = TestUtilities.getTestContentObserver();
+        cursor.registerContentObserver(testContentObserver);
+
+        // Test with VIDEOS URI
+        int count = mContext.getContentResolver().update(
+                MoviesContract.VideosEntry.CONTENT_URI,
+                updatedValues,
+                MoviesContract.VideosEntry._ID + "= ?",
+                new String[]{Long.toString(rowId)}
+        );
+        assertEquals(1, count);
+        testContentObserver.waitForNotificationOrFail();
+        cursor.unregisterContentObserver(testContentObserver);
+
+        cursor = mContext.getContentResolver().query(
+                MoviesContract.VideosEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        TestUtilities.validateCursor("videos update ", cursor, updatedValues);
+
+        // Test with VIDEO URI
+        cursor.registerContentObserver(testContentObserver);
+        updatedValues.put(MoviesContract.VideosEntry.COLUMN_VIDEO_NAME, "Updated Video Name 2");
+
+        count = mContext.getContentResolver().update(
+                MoviesContract.VideosEntry.buildVideoUri(rowId),
+                updatedValues,
+                null,
+                null
+        );
+        assertEquals(1, count);
+        testContentObserver.waitForNotificationOrFail();
+        cursor.unregisterContentObserver(testContentObserver);
+
+        cursor = mContext.getContentResolver().query(
+                MoviesContract.VideosEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        TestUtilities.validateCursor("video update ", cursor, updatedValues);
+
+        // Test with VIDEOS_FOR_MOVIE URI
+        cursor.registerContentObserver(testContentObserver);
+        updatedValues.put(MoviesContract.VideosEntry.COLUMN_VIDEO_NAME, "Updated Video Name 3");
+
+        count = mContext.getContentResolver().update(
+                MoviesContract.VideosEntry.buildVideosForMovieUri(mdbIdTestValue),
+                updatedValues,
+                null,
+                null
+        );
+        assertEquals(1, count);
+        testContentObserver.waitForNotificationOrFail();
+        cursor.unregisterContentObserver(testContentObserver);
+
+        cursor = mContext.getContentResolver().query(
+                MoviesContract.VideosEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        TestUtilities.validateCursor("videos for movie update ", cursor, updatedValues);
+
+        mContext.getContentResolver().unregisterContentObserver(testContentObserver);
+        testContentObserver.closeHandlerThread();
+        cursor.close();
+    }
+
     public void testDeleteReviews() {
         TestUtilities.TestContentObserver testContentObserver = TestUtilities.getTestContentObserver();
         mContext.getContentResolver().registerContentObserver(MoviesContract.ReviewsEntry.CONTENT_URI, true, testContentObserver);
         ContentValues testValues = TestUtilities.createReviewValues();
-        long reviewRowId;
+        long rowId;
         int mdbIdTestValue = TestUtilities.TEST_MDB_ID;
 
         // Test with REVIEWS URI
         TestUtilities.deleteAllRecordsFromProvider(mContext);
-        reviewRowId = TestUtilities.insertReviewsIntoProvider(mContext, testValues);
+        rowId = TestUtilities.insertReviewsIntoProvider(mContext, testValues);
 
         mContext.getContentResolver().delete(
                 MoviesContract.ReviewsEntry.CONTENT_URI,
@@ -420,10 +621,10 @@ public class TestProvider extends AndroidTestCase {
         assertEquals("Error: Records not deleted from Reviews table during reviews delete", 0, cursor.getCount());
 
         // Test with REVIEW URI
-        reviewRowId = TestUtilities.insertReviewsIntoProvider(mContext, testValues);
+        rowId = TestUtilities.insertReviewsIntoProvider(mContext, testValues);
 
         mContext.getContentResolver().delete(
-                MoviesContract.ReviewsEntry.buildReviewUri(reviewRowId),
+                MoviesContract.ReviewsEntry.buildReviewUri(rowId),
                 null,
                 null
         );
@@ -439,7 +640,7 @@ public class TestProvider extends AndroidTestCase {
         assertEquals("Error: Records not deleted from Reviews table during review delete", 0, cursor.getCount());
 
         // Test with REVIEWS_FOR_MOVIE URI
-        reviewRowId = TestUtilities.insertReviewsIntoProvider(mContext, testValues);
+        rowId = TestUtilities.insertReviewsIntoProvider(mContext, testValues);
 
         mContext.getContentResolver().delete(
                 MoviesContract.ReviewsEntry.buildReviewsForMovieUri(mdbIdTestValue),
@@ -462,15 +663,85 @@ public class TestProvider extends AndroidTestCase {
         cursor.close();
     }
 
+    public void testDeleteVideos() {
+        TestUtilities.TestContentObserver testContentObserver = TestUtilities.getTestContentObserver();
+        mContext.getContentResolver().registerContentObserver(MoviesContract.VideosEntry.CONTENT_URI, true, testContentObserver);
+        ContentValues testValues = TestUtilities.createVideoValues();
+        long rowId;
+        int mdbIdTestValue = TestUtilities.TEST_MDB_ID;
+
+        // Test with VIDEOS URI
+        TestUtilities.deleteAllRecordsFromProvider(mContext);
+        rowId = TestUtilities.insertVideosIntoProvider(mContext, testValues);
+
+        mContext.getContentResolver().delete(
+                MoviesContract.VideosEntry.CONTENT_URI,
+                null,
+                null
+        );
+        testContentObserver.waitForNotificationOrFail();
+
+        Cursor cursor = mContext.getContentResolver().query(
+                MoviesContract.VideosEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        assertEquals("Error: Records not deleted from Videos table during videos delete", 0, cursor.getCount());
+
+        // Test with VIDEO URI
+        rowId = TestUtilities.insertVideosIntoProvider(mContext, testValues);
+
+        mContext.getContentResolver().delete(
+                MoviesContract.VideosEntry.buildVideoUri(rowId),
+                null,
+                null
+        );
+        testContentObserver.waitForNotificationOrFail();
+
+        cursor = mContext.getContentResolver().query(
+                MoviesContract.VideosEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        assertEquals("Error: Records not deleted from Videos table during video delete", 0, cursor.getCount());
+
+        // Test with VIDEOS_FOR_MOVIE URI
+        rowId = TestUtilities.insertVideosIntoProvider(mContext, testValues);
+
+        mContext.getContentResolver().delete(
+                MoviesContract.VideosEntry.buildVideosForMovieUri(mdbIdTestValue),
+                null,
+                null
+        );
+        testContentObserver.waitForNotificationOrFail();
+
+        cursor = mContext.getContentResolver().query(
+                MoviesContract.VideosEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        assertEquals("Error: Records not deleted from Videos table during videos for movie delete", 0, cursor.getCount());
+
+        mContext.getContentResolver().unregisterContentObserver(testContentObserver);
+        testContentObserver.closeHandlerThread();
+        cursor.close();
+    }
+
     public void testDeleteMovies() {
         TestUtilities.TestContentObserver testContentObserver = TestUtilities.getTestContentObserver();
         mContext.getContentResolver().registerContentObserver(MoviesEntry.CONTENT_URI, true, testContentObserver);
         ContentValues testValues = TestUtilities.createMovieValues();
-        long movieRowId;
+        long rowId;
 
         // Test with MOVIES URI
         TestUtilities.deleteAllRecordsFromProvider(mContext);
-        movieRowId = TestUtilities.insertMoviesIntoProvider(mContext, testValues);
+        rowId = TestUtilities.insertMoviesIntoProvider(mContext, testValues);
 
         mContext.getContentResolver().delete(
                 MoviesEntry.CONTENT_URI,
@@ -489,10 +760,10 @@ public class TestProvider extends AndroidTestCase {
         assertEquals("Error: Records not deleted from Movies table during movies delete", 0, cursor.getCount());
 
         // Test with MOVIE URI
-        movieRowId = TestUtilities.insertMoviesIntoProvider(mContext, testValues);
+        rowId = TestUtilities.insertMoviesIntoProvider(mContext, testValues);
 
         mContext.getContentResolver().delete(
-                MoviesEntry.buildMovieUri(movieRowId),
+                MoviesEntry.buildMovieUri(rowId),
                 null,
                 null
         );
@@ -508,7 +779,7 @@ public class TestProvider extends AndroidTestCase {
         assertEquals("Error: Records not deleted from Movies table during movie delete", 0, cursor.getCount());
 
         // Test with FAVORITES URI
-        movieRowId = TestUtilities.insertMoviesIntoProvider(mContext, testValues);
+        rowId = TestUtilities.insertMoviesIntoProvider(mContext, testValues);
 
         mContext.getContentResolver().delete(
                 MoviesEntry.buildMovieUri(1),
@@ -580,6 +851,40 @@ public class TestProvider extends AndroidTestCase {
 
         Cursor cursor = mContext.getContentResolver().query(
                 MoviesContract.ReviewsEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+
+        assertEquals(cursor.getCount(), TestUtilities.BULK_INSERT_RECORDS_TO_INSERT);
+
+        cursor.moveToFirst();
+        for (int i = 0; i < TestUtilities.BULK_INSERT_RECORDS_TO_INSERT; i++, cursor.moveToNext()) {
+            TestUtilities.validateCurrentRecord("bulk insert " + i,
+                    cursor, bulkInsertContentValues[i]);
+        }
+
+        mContext.getContentResolver().unregisterContentObserver(testContentObserver);
+        testContentObserver.closeHandlerThread();
+        cursor.close();
+    }
+
+    public void testBulkInsertVideos() {
+        ContentValues[] bulkInsertContentValues = TestUtilities.createBulkInsertVideosValues();
+
+        TestUtilities.deleteAllRecordsFromProvider(mContext);
+        TestUtilities.TestContentObserver testContentObserver = TestUtilities.getTestContentObserver();
+        mContext.getContentResolver().registerContentObserver(MoviesContract.VideosEntry.CONTENT_URI, true, testContentObserver);
+
+        int insertCount = mContext.getContentResolver().bulkInsert(MoviesContract.VideosEntry.CONTENT_URI, bulkInsertContentValues);
+
+        testContentObserver.waitForNotificationOrFail();
+
+        assertEquals(insertCount, TestUtilities.BULK_INSERT_RECORDS_TO_INSERT);
+
+        Cursor cursor = mContext.getContentResolver().query(
+                MoviesContract.VideosEntry.CONTENT_URI,
                 null,
                 null,
                 null,

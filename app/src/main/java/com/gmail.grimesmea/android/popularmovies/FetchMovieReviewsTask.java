@@ -38,9 +38,7 @@ public class FetchMovieReviewsTask extends AsyncTask<Void, Void, Review[]> {
     protected Review[] doInBackground(Void... params) {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
-
         String reviewsJsonStr = null;
-
         String apiKey = BuildConfig.API_KEY;
 
 

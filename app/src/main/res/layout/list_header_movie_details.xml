@@ -121,16 +121,11 @@
         android:padding="16dp" />
 
     <TextView
+        android:id="@+id/movie_reviews_label"
         style="@style/MovieReviewsLabelFont"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:padding="16dp"
         android:text="@string/reviews_label" />
-
-    <ListView
-        android:id="@+id/review_listview"
-        android:layout_width="fill_parent"
-        android:layout_height="match_parent"
-        android:paddingBottom="16dp" />
 
 </LinearLayout>

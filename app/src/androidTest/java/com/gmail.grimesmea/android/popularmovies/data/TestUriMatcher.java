@@ -12,6 +12,9 @@ public class TestUriMatcher extends AndroidTestCase {
     private static final Uri TEST_REVIEWS_DIR = MoviesContract.ReviewsEntry.CONTENT_URI;
     private static final Uri TEST_REVIEW_DIR = MoviesContract.ReviewsEntry.buildReviewUri(1);
     private static final Uri TEST_REVIEWS_FOR_MOVIE_DIR = MoviesContract.ReviewsEntry.buildReviewsForMovieUri(1);
+    private static final Uri TEST_VIDEOS_DIR = MoviesContract.VideosEntry.CONTENT_URI;
+    private static final Uri TEST_VIDEO_DIR = MoviesContract.VideosEntry.buildVideoUri(1);
+    private static final Uri TEST_VIDEOS_FOR_MOVIE_DIR = MoviesContract.VideosEntry.buildVideosForMovieUri(1);
 
 
     public void testUriMatcher() {
@@ -30,5 +33,12 @@ public class TestUriMatcher extends AndroidTestCase {
                 MoviesProvider.REVIEW, testUriMatcher.match(TEST_REVIEW_DIR));
         assertEquals("Error: The REVIEWS_FOR_MOVIE_DIR URI was matched incorrectly.",
                 MoviesProvider.REVIEWS_FOR_MOVIE, testUriMatcher.match(TEST_REVIEWS_FOR_MOVIE_DIR));
+
+        assertEquals("Error: The VIDEOS URI was matched incorrectly.",
+                MoviesProvider.VIDEOS, testUriMatcher.match(TEST_VIDEOS_DIR));
+        assertEquals("Error: The VIDEO URI was matched incorrectly.",
+                MoviesProvider.VIDEO, testUriMatcher.match(TEST_VIDEO_DIR));
+        assertEquals("Error: The VIDEOS_FOR_MOVIE_DIR URI was matched incorrectly.",
+                MoviesProvider.VIDEOS_FOR_MOVIE, testUriMatcher.match(TEST_VIDEOS_FOR_MOVIE_DIR));
     }
 }

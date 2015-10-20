@@ -16,10 +16,11 @@ public class TestDb extends AndroidTestCase {
         TestUtilities.deleteDatabase(mContext);
     }
 
-    public void testCreateDbWithMoviesAndReviewsTables() throws Throwable {
+    public void testCreateDb() throws Throwable {
         final Set<String> tableNameHashSet = new HashSet<String>();
         tableNameHashSet.add(MoviesContract.MoviesEntry.TABLE_NAME);
         tableNameHashSet.add(MoviesContract.ReviewsEntry.TABLE_NAME);
+        tableNameHashSet.add(MoviesContract.VideosEntry.TABLE_NAME);
 
         SQLiteDatabase db = new MoviesDbHelper(
                 this.mContext).getWritableDatabase();
@@ -32,7 +33,7 @@ public class TestDb extends AndroidTestCase {
         do {
             tableNameHashSet.remove(cursor.getString(0));
         } while (cursor.moveToNext());
-        assertTrue("Error: Database was created without the movies entry and reviews entry tables",
+        assertTrue("Error: Database was created without the movies, reviews, and videos entry tables",
                 tableNameHashSet.isEmpty());
 
         cursor.close();
@@ -99,6 +100,36 @@ public class TestDb extends AndroidTestCase {
         db.close();
     }
 
+    public void testCreateVideosTable() throws Throwable {
+        SQLiteDatabase db = new MoviesDbHelper(
+                this.mContext).getWritableDatabase();
+        assertEquals(true, db.isOpen());
+
+        Cursor cursor = db.rawQuery("PRAGMA table_info(" + MoviesContract.VideosEntry.TABLE_NAME + ")",
+                null);
+        assertTrue("Error: Unable to query the database for videos table information",
+                cursor.moveToFirst());
+
+        final Set<String> videosColumnHashSet = new HashSet<String>();
+        videosColumnHashSet.add(MoviesContract.VideosEntry.COLUMN_MDB_ID);
+        videosColumnHashSet.add(MoviesContract.VideosEntry.COLUMN_VIDEO_TYPE);
+        videosColumnHashSet.add(MoviesContract.VideosEntry.COLUMN_VIDEO_NAME);
+        videosColumnHashSet.add(MoviesContract.VideosEntry.COLUMN_VIDEO_SIZE);
+        videosColumnHashSet.add(MoviesContract.VideosEntry.COLUMN_VIDEO_SITE);
+        videosColumnHashSet.add(MoviesContract.VideosEntry.COLUMN_VIDEO_KEY);
+
+        int columnNameIndex = cursor.getColumnIndex("name");
+        do {
+            String columnName = cursor.getString(columnNameIndex);
+            videosColumnHashSet.remove(columnName);
+        } while (cursor.moveToNext());
+        assertTrue("Error: The videos table does not contain all of the required columns",
+                videosColumnHashSet.isEmpty());
+
+        cursor.close();
+        db.close();
+    }
+
     public long testInsertMovie() {
         MoviesDbHelper dbHelper = new MoviesDbHelper(mContext);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -159,5 +190,37 @@ public class TestDb extends AndroidTestCase {
         cursor.close();
         db.close();
         return reviewRowId;
+    }
+
+    public long testInsertVideo() {
+        MoviesDbHelper dbHelper = new MoviesDbHelper(mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues testMovieValues = TestUtilities.createMovieValues();
+        ContentValues testVideoValues = TestUtilities.createVideoValues();
+
+        TestUtilities.insertMovieValuesIntoDb(db, testMovieValues);
+        long videoRowId = TestUtilities.insertVideoValuesIntoDb(db, testVideoValues);
+        assertTrue("Error: Failed to insert test video values", videoRowId != -1);
+
+        Cursor cursor = db.query(
+                MoviesContract.VideosEntry.TABLE_NAME,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+        assertTrue("Error: Query returned no records", cursor.moveToFirst());
+
+
+        TestUtilities.validateCurrentRecord("testInsertVideo",
+                cursor, testVideoValues);
+        assertFalse("Error: More than one record returned by query",
+                cursor.moveToNext());
+
+        cursor.close();
+        db.close();
+        return videoRowId;
     }
 }

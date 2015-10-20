@@ -1,6 +1,5 @@
 package com.gmail.grimesmea.android.popularmovies;
 
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
@@ -22,37 +21,39 @@ import java.net.URL;
 import java.util.List;
 import java.util.Vector;
 
-public class FetchMoviesTask extends AsyncTask<Void, Void, Movie[]> {
+public class FetchMovieVideosTask extends AsyncTask<Void, Void, Video[]> {
 
-    private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
+    private final String LOG_TAG = FetchMovieVideosTask.class.getSimpleName();
     private final Context context;
+    private final int mdbId;
 
-    private Movie[] moviesArray;
+    private String[] movieVideossArray;
 
-    public FetchMoviesTask(Context context) {
+    public FetchMovieVideosTask(Context context, int mdbId) {
         this.context = context;
+        this.mdbId = mdbId;
     }
 
     @Override
-    protected Movie[] doInBackground(Void... params) {
+    protected Video[] doInBackground(Void... params) {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
-        String moviesJsonStr = null;
-        String sortParam = "popularity.desc";
+        String videosJsonStr = null;
         String apiKey = BuildConfig.API_KEY;
 
         try {
             final String MOVIEDB_BASE_URL =
-                    "http://api.themoviedb.org/3/discover/movie?";
-            final String SORT_PARAM = "sort_by";
+                    "http://api.themoviedb.org/3/movie";
             final String API_KEY_PARAM = "api_key";
 
             Uri builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
-                    .appendQueryParameter(SORT_PARAM, sortParam)
+                    .appendPath(Integer.toString(mdbId))
+                    .appendPath("videos")
                     .appendQueryParameter(API_KEY_PARAM, apiKey)
                     .build();
 
             URL url = new URL(builtUri.toString());
+            Log.d(LOG_TAG, url.toString());
 
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
@@ -74,7 +75,8 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Movie[]> {
                 return null;
             }
 
-            moviesJsonStr = buffer.toString();
+            videosJsonStr = buffer.toString();
+            Log.d(LOG_TAG, videosJsonStr);
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
             return null;
@@ -92,7 +94,7 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Movie[]> {
         }
 
         try {
-            return getMoviesFromJson(moviesJsonStr);
+            return getVideosFromJson(videosJsonStr, mdbId);
         } catch (JSONException e) {
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
@@ -101,37 +103,37 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Movie[]> {
         return null;
     }
 
-    private Movie[] getMoviesFromJson(String moviesJsonStr) throws JSONException {
+    private Video[] getVideosFromJson(String videosJsonStr, int mdbId) throws JSONException {
         final String MDB_RESULTS = "results";
 
-        JSONObject moviesJson = new JSONObject(moviesJsonStr);
-        JSONArray moviesJsonArray = moviesJson.getJSONArray(MDB_RESULTS);
-        moviesArray = new Movie[moviesJsonArray.length()];
+        JSONObject videosJson = new JSONObject(videosJsonStr);
+        JSONArray videosJsonArray = videosJson.getJSONArray(MDB_RESULTS);
+        Video[] videosArray = new Video[videosJsonArray.length()];
 
-        for (int i = 0; i < moviesJsonArray.length(); i++) {
-            JSONObject movieJson = moviesJsonArray.getJSONObject(i);
-            moviesArray[i] = new Movie(movieJson);
+        for (int i = 0; i < videosJsonArray.length(); i++) {
+            JSONObject videoJson = videosJsonArray.getJSONObject(i);
+            videosArray[i] = new Video(videoJson, mdbId);
         }
 
-        Log.d(LOG_TAG, moviesJsonArray.length() + " movies fetched");
+        Log.d(LOG_TAG, videosJsonArray.length() + " videos fetched");
 
-        return moviesArray;
+        return videosArray;
     }
 
-    private int bulkInsertMoviesDataIntoMoviesContentProvider(Movie[] moviesArray) {
+    private int bulkInsertVideosDataIntoMoviesContentProvider(Video[] videosArray) {
         int insertedRows = 0;
 
-        if (moviesArray.length > 0) {
-            List<ContentValues> moviesContentValuesVector = new Vector<ContentValues>(moviesArray.length);
-            ContentValues[] moviesContentValuesArray = new ContentValues[moviesArray.length];
+        if (videosArray.length > 0) {
+            List<ContentValues> videosContentValuesVector = new Vector<ContentValues>(videosArray.length);
+            ContentValues[] videosContentValuesArray = new ContentValues[videosArray.length];
 
-            for (Movie movie : moviesArray) {
-                moviesContentValuesVector.add(movie.createContentValues());
+            for (Video video : videosArray) {
+                videosContentValuesVector.add(video.createContentValues());
             }
-            moviesContentValuesVector.toArray(moviesContentValuesArray);
+            videosContentValuesVector.toArray(videosContentValuesArray);
 
             insertedRows = context.getContentResolver().
-                    bulkInsert(MoviesContract.MoviesEntry.CONTENT_URI, moviesContentValuesArray);
+                    bulkInsert(MoviesContract.VideosEntry.CONTENT_URI, videosContentValuesArray);
         }
 
         Log.d(LOG_TAG, insertedRows + " rows inserted");
@@ -140,9 +142,9 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Movie[]> {
     }
 
     @Override
-    protected void onPostExecute(Movie[] result) {
+    protected void onPostExecute(Video[] result) {
         if (result != null) {
-            bulkInsertMoviesDataIntoMoviesContentProvider(result);
+            bulkInsertVideosDataIntoMoviesContentProvider(result);
         }
     }
 }

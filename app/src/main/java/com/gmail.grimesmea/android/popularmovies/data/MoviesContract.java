@@ -11,6 +11,7 @@ public class MoviesContract {
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
     public static final String PATH_MOVIES = "movies";
     public static final String PATH_REVIEWS = "reviews";
+    public static final String PATH_VIDEOS = "videos";
 
     public static final class MoviesEntry implements BaseColumns {
         public static final Uri CONTENT_URI =
@@ -59,6 +60,31 @@ public class MoviesContract {
 
         public static Uri buildReviewsForMovieUri(int mdbId) {
             return CONTENT_URI.buildUpon().appendPath("reviewsForMovie").appendQueryParameter(COLUMN_MDB_ID, Integer.toString(mdbId)).build();
+        }
+    }
+
+    public static final class VideosEntry implements BaseColumns {
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_VIDEOS).build();
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_VIDEOS;
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_VIDEOS;
+
+        public static final String TABLE_NAME = "videos";
+        public static final String COLUMN_MDB_ID = "mdb_id";
+        public static final String COLUMN_VIDEO_TYPE = "video_type";
+        public static final String COLUMN_VIDEO_NAME = "video_name";
+        public static final String COLUMN_VIDEO_SIZE = "video_size";
+        public static final String COLUMN_VIDEO_SITE = "video_site";
+        public static final String COLUMN_VIDEO_KEY = "video_key";
+
+        public static Uri buildVideoUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        public static Uri buildVideosForMovieUri(int mdbId) {
+            return CONTENT_URI.buildUpon().appendPath("videosForMovie").appendQueryParameter(COLUMN_MDB_ID, Integer.toString(mdbId)).build();
         }
     }
 
