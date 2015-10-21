@@ -24,6 +24,6 @@ public class ReviewAdapter extends CursorAdapter {
     public void bindView(View view, Context context, Cursor cursor) {
         TextView reviewView = (TextView) view;
         Review review = new Review(cursor);
-        reviewView.setText(review.content);
+        reviewView.setText(review.getContent());
     }
 }

@@ -176,5 +176,39 @@ public class Movie implements Parcelable {
         return formattedReleaseDate;
     }
 
+    public int getMdbId() {
+        return mdbId;
+    }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public String getSynopsis() {
+        return synopsis;
+    }
+
+    public String getReleaseDate() {
+        return releaseDate;
+    }
+
+    public String getPopularity() {
+        return popularity;
+    }
+
+    public String getRating() {
+        return rating;
+    }
+
+    public String getPosterImagePath() {
+        return posterImagePath;
+    }
+
+    public String getBackdropImagePath() {
+        return backdropImagePath;
+    }
+
+    public Boolean getIsFavorite() {
+        return isFavorite;
+    }
 }

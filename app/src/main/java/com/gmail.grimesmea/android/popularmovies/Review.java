@@ -49,4 +49,17 @@ public class Review {
 
         return reviewValues;
     }
+
+
+    public int getMdbId() {
+        return mdbId;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public String getContent() {
+        return content;
+    }
 }

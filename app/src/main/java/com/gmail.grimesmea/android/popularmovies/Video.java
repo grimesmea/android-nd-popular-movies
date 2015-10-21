@@ -43,7 +43,6 @@ public class Video {
                 videoCursor.getInt(DetailFragment.COL_VIDEO_SIZE),
                 videoCursor.getString(DetailFragment.COL_VIDEO_SITE),
                 videoCursor.getString(DetailFragment.COL_VIDEO_KEY)
-
         );
     }
 
@@ -71,11 +70,36 @@ public class Video {
 
     public String getVideoUrl() {
         final String YOUTUBE_BASE_URL = "https://www.youtube.com/watch";
+        final String VIDEO_QUERY_KEY = "v";
 
         Uri builtUri = Uri.parse(YOUTUBE_BASE_URL).buildUpon()
-                .appendEncodedPath(key)
+                .appendQueryParameter(VIDEO_QUERY_KEY, key)
                 .build();
 
         return builtUri.toString();
+    }
+
+    public int getMdbId() {
+        return mdbId;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public String getSite() {
+        return site;
+    }
+
+    public String getKey() {
+        return key;
     }
 }

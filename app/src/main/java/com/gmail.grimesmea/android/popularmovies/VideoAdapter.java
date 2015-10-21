@@ -24,6 +24,6 @@ public class VideoAdapter extends CursorAdapter {
     public void bindView(View view, Context context, Cursor cursor) {
         TextView videoView = (TextView) view;
         Video video = new Video(cursor);
-        videoView.setText(video.name);
+        videoView.setText(video.getName());
     }
 }

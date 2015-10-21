@@ -64,7 +64,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     private boolean hasReviewsForMovie() {
         return getActivity().getContentResolver().query(
-                MoviesContract.ReviewsEntry.buildReviewsForMovieUri(movie.mdbId),
+                MoviesContract.ReviewsEntry.buildReviewsForMovieUri(movie.getMdbId()),
                 null,
                 null,
                 null,
@@ -74,7 +74,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     private boolean hasVideosForMovie() {
         return getActivity().getContentResolver().query(
-                MoviesContract.VideosEntry.buildVideosForMovieUri(movie.mdbId),
+                MoviesContract.VideosEntry.buildVideosForMovieUri(movie.getMdbId()),
                 null,
                 null,
                 null,
@@ -83,12 +83,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     }
 
     private void fetchReviews() {
-        FetchMovieReviewsTask moviesReviewTask = new FetchMovieReviewsTask(getActivity(), movie.mdbId);
+        FetchMovieReviewsTask moviesReviewTask = new FetchMovieReviewsTask(getActivity(), movie.getMdbId());
         moviesReviewTask.execute();
     }
 
     private void fetchVideos() {
-        FetchMovieVideosTask moviesVideosTask = new FetchMovieVideosTask(getActivity(), movie.mdbId);
+        FetchMovieVideosTask moviesVideosTask = new FetchMovieVideosTask(getActivity(), movie.getMdbId());
         moviesVideosTask.execute();
     }
 
@@ -115,21 +115,21 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         Picasso.with(getActivity()).load(movie.getPosterImageUrl()).into(posterView);
 
         TextView movieTitleView = (TextView) rootView.findViewById(R.id.detail_fragment_movie_title_textview);
-        movieTitleView.setText(movie.title);
+        movieTitleView.setText(movie.getTitle());
 
         TextView movieReleaseDateView = (TextView) rootView.findViewById(R.id.detail_fragment_movie_release_date_textview);
         try {
             movieReleaseDateView.setText(movie.getFormattedReleaseDate());
         } catch (ParseException e) {
-            movieReleaseDateView.setText(movie.releaseDate);
+            movieReleaseDateView.setText(movie.getReleaseDate());
             e.printStackTrace();
         }
 
         TextView movieRatingView = (TextView) rootView.findViewById(R.id.detail_fragment_movie_rating_textview);
-        movieRatingView.setText(movie.rating);
+        movieRatingView.setText(movie.getRating());
 
         TextView movieSynopsisView = (TextView) rootView.findViewById(R.id.detail_fragment_movie_synopsis_textview);
-        movieSynopsisView.setText(movie.synopsis);
+        movieSynopsisView.setText(movie.getSynopsis());
 
         return rootView;
     }
@@ -204,7 +204,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                 View v = getLayoutInflater(null).inflate(R.layout.list_item_video, null);
                 final View rootView = v.getRootView();
                 TextView videoName = (TextView) v.findViewById(R.id.list_item_video_textview);
-                videoName.setText(video.name);
+                videoName.setText(video.getName());
                 videoName.setTag(video);
 
                 containerView.addView(rootView);
@@ -215,7 +215,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                     public void onClick(View view) {
                         try {
                             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(
-                                    "vnd.youtube:" + video.key));
+                                    "vnd.youtube:" + video.getKey()));
                             startActivity(intent);
                         } catch (ActivityNotFoundException e) {
                             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(
@@ -226,7 +226,6 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                 });
 
             } while (cursor.moveToNext());
-
         }
     }
 }
