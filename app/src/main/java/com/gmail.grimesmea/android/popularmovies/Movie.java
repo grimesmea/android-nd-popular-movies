@@ -211,4 +211,8 @@ public class Movie implements Parcelable {
     public Boolean getIsFavorite() {
         return isFavorite;
     }
+
+    public void setIsFavorite(Boolean isFavorite) {
+        this.isFavorite = isFavorite;
+    }
 }

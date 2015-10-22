@@ -1,6 +1,7 @@
 package com.gmail.grimesmea.android.popularmovies;
 
 import android.content.ActivityNotFoundException;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -10,12 +11,16 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.gmail.grimesmea.android.popularmovies.data.MoviesContract;
 import com.squareup.picasso.Picasso;
@@ -111,6 +116,29 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         ImageView backdropView = (ImageView) rootView.findViewById(R.id.detail_fragment_backdrop_imageview);
         Picasso.with(getActivity()).load(movie.getBackdropImageUrl()).into(backdropView);
 
+        ToggleButton buttonView = (ToggleButton) rootView.findViewById(R.id.favorite_toggle);
+
+        if (movie.getIsFavorite()) {
+            buttonView.setChecked(true);
+            buttonView.setButtonDrawable(R.drawable.abc_btn_rating_star_on_mtrl_alpha);
+        }
+
+        buttonView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    buttonView.setButtonDrawable(R.drawable.abc_btn_rating_star_on_mtrl_alpha);
+                    movie.setIsFavorite(true);
+                    setFavoriteStatusOfMovieInProvider(movie, true);
+                } else {
+                    buttonView.setButtonDrawable(R.drawable.abc_btn_rating_star_off_mtrl_alpha);
+                    movie.setIsFavorite(false);
+                    setFavoriteStatusOfMovieInProvider(movie, false);
+                }
+
+                showFavoriteStatusChangeToast();
+            }
+        });
+
         ImageView posterView = (ImageView) rootView.findViewById(R.id.detail_fragment_poster_imageview);
         Picasso.with(getActivity()).load(movie.getPosterImageUrl()).into(posterView);
 
@@ -132,6 +160,34 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         movieSynopsisView.setText(movie.getSynopsis());
 
         return rootView;
+    }
+
+    public int setFavoriteStatusOfMovieInProvider(Movie movie, Boolean isFavorite) {
+        ContentValues favoritesValue = new ContentValues();
+        favoritesValue.put(MoviesContract.MoviesEntry.COLUMN_FAVORITE, (byte) (isFavorite ? 1 : 0));
+        Log.d(LOG_TAG, Integer.toString(isFavorite ? 1 : 0));
+
+        return getActivity().getContentResolver().update(
+                MoviesContract.MoviesEntry.CONTENT_URI,
+                favoritesValue,
+                MoviesContract.MoviesEntry.COLUMN_MDB_ID + "= ?",
+                new String[]{Integer.toString(movie.getMdbId())}
+        );
+    }
+
+    public void showFavoriteStatusChangeToast() {
+        Context context = getActivity();
+        int duration = Toast.LENGTH_SHORT;
+        CharSequence text = movie.getTitle();
+
+        if (movie.getIsFavorite()) {
+            text = text + " is now a favorite!";
+        } else {
+            text = text + " is no longer a favorite.";
+        }
+
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
     }
 
     @Override
@@ -224,7 +280,6 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                         }
                     }
                 });
-
             } while (cursor.moveToNext());
         }
     }

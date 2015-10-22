@@ -33,6 +33,17 @@
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
             android:paddingTop="16dp" />
+
+        <ToggleButton
+            android:id="@+id/favorite_toggle"
+            style="@android:style/Widget.Holo.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/detail_fragment_movie_title_textview"
+            android:layout_alignParentRight="true"
+            android:button="@drawable/abc_btn_rating_star_off_mtrl_alpha"
+            android:textOff=""
+            android:textOn="" />
     </RelativeLayout>
 
     <LinearLayout
