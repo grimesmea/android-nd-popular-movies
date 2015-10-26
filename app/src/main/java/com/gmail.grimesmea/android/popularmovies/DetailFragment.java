@@ -13,14 +13,15 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import com.gmail.grimesmea.android.popularmovies.data.MoviesContract;
 import com.squareup.picasso.Picasso;
@@ -65,6 +66,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         if (!hasVideosForMovie()) {
             fetchVideos();
         }
+
+        setHasOptionsMenu(true);
     }
 
     private boolean hasReviewsForMovie() {
@@ -104,40 +107,20 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         ListView reviewsListView = (ListView) rootView.findViewById(R.id.review_listview);
         LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService
                 (Context.LAYOUT_INFLATER_SERVICE);
-        View headerView = layoutInflater.inflate(R.layout.list_header_movie_details, reviewsListView, false);
-        View footerView = layoutInflater.inflate(R.layout.list_footer_videos, reviewsListView, false);
+        View detailsHeaderView = layoutInflater.inflate(R.layout.list_header_movie_details, reviewsListView, false);
+        View videosHeaderView = layoutInflater.inflate(R.layout.list_header_videos, reviewsListView, false);
+        View reviewsLabelHeaderView = layoutInflater.inflate(R.layout.list_header_reviews_label, reviewsListView, false);
         reviewAdapter = new ReviewAdapter(getActivity(), null, 0);
 
         getActivity().setTitle("");
-        reviewsListView.addHeaderView(headerView);
-        reviewsListView.addHeaderView(footerView);
+        reviewsListView.setHeaderDividersEnabled(false);
+        reviewsListView.addHeaderView(detailsHeaderView);
+        reviewsListView.addHeaderView(videosHeaderView);
+        reviewsListView.addHeaderView(reviewsLabelHeaderView);
         reviewsListView.setAdapter(reviewAdapter);
 
         ImageView backdropView = (ImageView) rootView.findViewById(R.id.detail_fragment_backdrop_imageview);
         Picasso.with(getActivity()).load(movie.getBackdropImageUrl()).into(backdropView);
-
-        ToggleButton buttonView = (ToggleButton) rootView.findViewById(R.id.favorite_toggle);
-
-        if (movie.getIsFavorite()) {
-            buttonView.setChecked(true);
-            buttonView.setButtonDrawable(R.drawable.abc_btn_rating_star_on_mtrl_alpha);
-        }
-
-        buttonView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    buttonView.setButtonDrawable(R.drawable.abc_btn_rating_star_on_mtrl_alpha);
-                    movie.setIsFavorite(true);
-                    setFavoriteStatusOfMovieInProvider(movie, true);
-                } else {
-                    buttonView.setButtonDrawable(R.drawable.abc_btn_rating_star_off_mtrl_alpha);
-                    movie.setIsFavorite(false);
-                    setFavoriteStatusOfMovieInProvider(movie, false);
-                }
-
-                showFavoriteStatusChangeToast();
-            }
-        });
 
         ImageView posterView = (ImageView) rootView.findViewById(R.id.detail_fragment_poster_imageview);
         Picasso.with(getActivity()).load(movie.getPosterImageUrl()).into(posterView);
@@ -188,6 +171,43 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
         Toast toast = Toast.makeText(context, text, duration);
         toast.show();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.fragment_detail, menu);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        if (movie.getIsFavorite() == true) {
+            MenuItem favoriteButton = menu.findItem(R.id.action_favorite_movie);
+
+            favoriteButton.setChecked(true);
+            favoriteButton.setIcon(R.drawable.ic_favorite_36dp);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_favorite_movie:
+                if (!item.isChecked()) {
+                    item.setChecked(true);
+                    item.setIcon(R.drawable.ic_favorite_36dp);
+                    movie.setIsFavorite(true);
+                    setFavoriteStatusOfMovieInProvider(movie, true);
+                } else {
+                    item.setChecked(false);
+                    item.setIcon(R.drawable.ic_favorite_outline_36dp);
+                    movie.setIsFavorite(false);
+                    setFavoriteStatusOfMovieInProvider(movie, false);
+                }
+                showFavoriteStatusChangeToast();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override

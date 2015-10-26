@@ -11,7 +11,7 @@
         <item name="android:typeface">sans</item>
     </style>
 
-    <style name="MovieReleaseDateLabelFont" parent="@android:style/TextAppearance.Large">
+    <style name="MovieDetailsLabelFont" parent="@android:style/TextAppearance.Small">
         <item name="android:textColor">@android:color/tertiary_text_light</item>
         <item name="android:typeface">sans</item>
     </style>
@@ -22,7 +22,7 @@
     </style>
 
     <style name="MovieRatingFont" parent="@android:style/TextAppearance.Large">
-        <item name="android:textColor">@android:color/primary_text_light</item>
+        <item name="android:textColor">@android:color/secondary_text_light</item>
         <item name="android:typeface">sans</item>
     </style>
 
@@ -32,17 +32,18 @@
     </style>
 
     <style name="MovieSynopsisFont" parent="@android:style/TextAppearance.Medium">
-        <item name="android:textColor">@android:color/primary_text_light</item>
+        <item name="android:textColor">@android:color/secondary_text_light</item>
         <item name="android:typeface">sans</item>
     </style>
 
-    <style name="MovieReviewsLabelFont" parent="@android:style/TextAppearance.Large">
+    <style name="ListLabelFont" parent="@android:style/TextAppearance.Large">
         <item name="android:textColor">@android:color/tertiary_text_light</item>
         <item name="android:typeface">sans</item>
+        <item name="android:textStyle">bold</item>
     </style>
 
     <style name="MovieReviewsFont" parent="@android:style/TextAppearance.Medium">
-        <item name="android:textColor">@android:color/primary_text_light</item>
+        <item name="android:textColor">@android:color/secondary_text_light</item>
         <item name="android:typeface">sans</item>
     </style>
 </resources>

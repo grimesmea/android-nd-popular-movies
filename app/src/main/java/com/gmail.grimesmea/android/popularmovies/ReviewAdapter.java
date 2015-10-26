@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class ReviewAdapter extends CursorAdapter {
@@ -22,8 +23,11 @@ public class ReviewAdapter extends CursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        TextView reviewView = (TextView) view;
+        RelativeLayout reviewRelativeLayout = (RelativeLayout) view;
+        TextView reviewAuthor = (TextView) reviewRelativeLayout.findViewById(R.id.review_author);
+        TextView reviewContent = (TextView) reviewRelativeLayout.findViewById(R.id.review_content);
         Review review = new Review(cursor);
-        reviewView.setText(review.getContent());
+        reviewAuthor.setText(review.getAuthor());
+        reviewContent.setText(review.getContent());
     }
 }
