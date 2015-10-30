@@ -31,18 +31,13 @@
         <item name="android:typeface">sans</item>
     </style>
 
-    <style name="MovieSynopsisFont" parent="@android:style/TextAppearance.Medium">
-        <item name="android:textColor">@android:color/secondary_text_light</item>
-        <item name="android:typeface">sans</item>
-    </style>
-
     <style name="ListLabelFont" parent="@android:style/TextAppearance.Large">
         <item name="android:textColor">@android:color/tertiary_text_light</item>
         <item name="android:typeface">sans</item>
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="MovieReviewsFont" parent="@android:style/TextAppearance.Medium">
+    <style name="BodyTextFont" parent="@android:style/TextAppearance.Medium">
         <item name="android:textColor">@android:color/secondary_text_light</item>
         <item name="android:typeface">sans</item>
     </style>

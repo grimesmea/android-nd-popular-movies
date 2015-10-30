@@ -1,14 +1,12 @@
 package com.gmail.grimesmea.android.popularmovies;
 
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -72,11 +70,9 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         movieAdapter = new MoviePosterAdapter(getActivity(), null, 0);
-        Log.d("MainFragment: ", "movieAdapter populated");
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         GridView gridView = (GridView) rootView.findViewById(R.id.gridview_movies);
-        gridView.setColumnWidth(gridView.getWidth() / 2);
         gridView.setAdapter(movieAdapter);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -84,12 +80,9 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
                 if (cursor != null) {
-                    Bundle movieBundle = new Bundle();
                     Movie movie = new Movie(cursor);
-                    movieBundle.putParcelable("movieParcelable", movie);
-                    Intent intent = new Intent(getActivity(), DetailActivity.class)
-                            .putExtra("movie", movieBundle);
-                    startActivity(intent);
+                    ((Callback) getActivity())
+                            .onItemSelected(movie);
                 }
             }
         });
@@ -190,5 +183,9 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         movieAdapter.swapCursor(null);
+    }
+
+    public interface Callback {
+        public void onItemSelected(Movie movie);
     }
 }

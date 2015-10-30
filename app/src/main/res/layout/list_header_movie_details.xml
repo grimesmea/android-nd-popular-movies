@@ -21,7 +21,7 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
+            android:layout_gravity="bottom"
             android:layout_weight="2"
             android:orientation="vertical">
 
@@ -144,7 +144,7 @@
 
         <TextView
             android:id="@+id/detail_fragment_movie_synopsis_textview"
-            style="@style/MovieSynopsisFont"
+            style="@style/BodyTextFont"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/detail_fragment_movie_synopsis_label"
@@ -154,5 +154,4 @@
             android:paddingRight="16dp"
             android:paddingTop="8dp" />
     </RelativeLayout>
-
 </LinearLayout>

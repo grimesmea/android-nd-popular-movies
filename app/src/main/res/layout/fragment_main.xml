@@ -5,6 +5,6 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:nestedScrollingEnabled="false"
-    android:numColumns="auto_fit"
+    android:numColumns="@integer/num_columns"
     android:stretchMode="columnWidth"
     tools:context=".MainFragment" />

@@ -11,7 +11,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -54,17 +53,18 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Intent intent = getActivity().getIntent();
-        if (intent != null && intent.hasExtra("movie")) {
-            movie = intent.getBundleExtra("movie").getParcelable("movieParcelable");
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            movie = arguments.getParcelable("movieParcelable");
         }
 
-        if (!hasReviewsForMovie()) {
-            fetchReviews();
-        }
-
-        if (!hasVideosForMovie()) {
-            fetchVideos();
+        if (movie != null) {
+            if (!hasReviewsForMovie()) {
+                fetchReviews();
+            }
+            if (!hasVideosForMovie()) {
+                fetchVideos();
+            }
         }
 
         setHasOptionsMenu(true);
@@ -119,6 +119,14 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         reviewsListView.addHeaderView(reviewsLabelHeaderView);
         reviewsListView.setAdapter(reviewAdapter);
 
+        if (movie != null) {
+            populateMovieDetailsInView(rootView);
+        }
+
+        return rootView;
+    }
+
+    private void populateMovieDetailsInView(View rootView) {
         ImageView backdropView = (ImageView) rootView.findViewById(R.id.detail_fragment_backdrop_imageview);
         Picasso.with(getActivity()).load(movie.getBackdropImageUrl()).into(backdropView);
 
@@ -141,15 +149,11 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
         TextView movieSynopsisView = (TextView) rootView.findViewById(R.id.detail_fragment_movie_synopsis_textview);
         movieSynopsisView.setText(movie.getSynopsis());
-
-        return rootView;
     }
 
     public int setFavoriteStatusOfMovieInProvider(Movie movie, Boolean isFavorite) {
         ContentValues favoritesValue = new ContentValues();
         favoritesValue.put(MoviesContract.MoviesEntry.COLUMN_FAVORITE, (byte) (isFavorite ? 1 : 0));
-        Log.d(LOG_TAG, Integer.toString(isFavorite ? 1 : 0));
-
         return getActivity().getContentResolver().update(
                 MoviesContract.MoviesEntry.CONTENT_URI,
                 favoritesValue,
@@ -180,7 +184,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        if (movie.getIsFavorite() == true) {
+        if (movie != null && movie.getIsFavorite() == true) {
             MenuItem favoriteButton = menu.findItem(R.id.action_favorite_movie);
 
             favoriteButton.setChecked(true);
@@ -213,8 +217,10 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        getLoaderManager().initLoader(REVIEWS_LOADER, null, this);
-        getLoaderManager().initLoader(VIDEOS_LOADER, null, this);
+        if (movie != null) {
+            getLoaderManager().initLoader(REVIEWS_LOADER, null, this);
+            getLoaderManager().initLoader(VIDEOS_LOADER, null, this);
+        }
     }
 
     @Override
@@ -249,6 +255,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         switch (loader.getId()) {
             case REVIEWS_LOADER:
                 reviewAdapter.swapCursor(cursor);
+                if (cursor.moveToFirst() && cursor.getCount() >= 1) {
+                    removeNoReviewsAvailableWarning();
+                }
                 break;
             case VIDEOS_LOADER:
                 addVideosTextView(cursor);
@@ -271,10 +280,19 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         }
     }
 
+    private void removeNoReviewsAvailableWarning() {
+        ViewGroup containerView = (ViewGroup) getView().findViewById(R.id.movie_reviews_label_container);
+
+        View noReviewsWarningView = containerView.findViewById(R.id.no_reviews_available_warning);
+        containerView.removeViewInLayout(noReviewsWarningView);
+    }
+
     private void addVideosTextView(final Cursor cursor) {
         ViewGroup containerView = (ViewGroup) getView().findViewById(R.id.movie_videos_container);
 
         if (cursor.moveToFirst() && cursor.getCount() >= 1) {
+            removeNoVideosAvailableWarning();
+
             do {
                 final Video video = new Video(cursor);
                 View v = getLayoutInflater(null).inflate(R.layout.list_item_video, null);
@@ -302,6 +320,13 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                 });
             } while (cursor.moveToNext());
         }
+    }
+
+    private void removeNoVideosAvailableWarning() {
+        ViewGroup containerView = (ViewGroup) getView().findViewById(R.id.movie_videos_container);
+
+        View noVideosWarningView = containerView.findViewById(R.id.no_videos_available_warning);
+        containerView.removeViewInLayout(noVideosWarningView);
     }
 }
 

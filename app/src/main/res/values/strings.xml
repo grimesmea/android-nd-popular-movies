@@ -16,4 +16,6 @@
     <string name="movie_poster_content_description">Movie Poster</string>
     <string name="movie_rating_label">User Rating</string>
     <string name="movie_synopsis_label">Synopsis</string>
+    <string name="no_videos_available">No videos found</string>
+    <string name="no_reviews_available">No user reviews available</string>
 </resources>

@@ -14,7 +14,7 @@
 
     <TextView
         android:id="@+id/list_item_video_textview"
-        style="@style/MovieReviewsFont"
+        style="@style/BodyTextFont"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/play_icon"

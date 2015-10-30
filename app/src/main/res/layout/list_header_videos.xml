@@ -3,6 +3,7 @@
     android:id="@+id/movie_videos_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:divider="?android:attr/dividerHorizontal"
     android:orientation="vertical"
     android:padding="@dimen/activity_vertical_margin">
 
@@ -14,8 +15,11 @@
         android:paddingBottom="8dp"
         android:text="@string/videos_label" />
 
-    <View
+    <TextView
+        android:id="@+id/no_videos_available_warning"
+        style="@style/BodyTextFont"
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@android:color/darker_gray" />
+        android:layout_height="wrap_content"
+        android:paddingBottom="16dp"
+        android:text="@string/no_videos_available" />
 </LinearLayout>
