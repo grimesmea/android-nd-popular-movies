@@ -11,6 +11,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.ShareActionProvider;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -44,6 +46,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private static final int VIDEOS_LOADER = 300;
     public ReviewAdapter reviewAdapter;
     public VideoAdapter videoAdapter;
+    private Menu activeMenu;
+    private ShareActionProvider shareActionProvider;
+    private String movieTrailerString;
     private Movie movie;
 
     public DetailFragment() {
@@ -65,9 +70,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             if (!hasVideosForMovie()) {
                 fetchVideos();
             }
-        }
 
-        setHasOptionsMenu(true);
+            setHasOptionsMenu(true);
+        }
     }
 
     private boolean hasReviewsForMovie() {
@@ -107,20 +112,27 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         ListView reviewsListView = (ListView) rootView.findViewById(R.id.review_listview);
         LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService
                 (Context.LAYOUT_INFLATER_SERVICE);
-        View detailsHeaderView = layoutInflater.inflate(R.layout.list_header_movie_details, reviewsListView, false);
-        View videosHeaderView = layoutInflater.inflate(R.layout.list_header_videos, reviewsListView, false);
-        View reviewsLabelHeaderView = layoutInflater.inflate(R.layout.list_header_reviews_label, reviewsListView, false);
-        reviewAdapter = new ReviewAdapter(getActivity(), null, 0);
-
-        getActivity().setTitle("");
-        reviewsListView.setHeaderDividersEnabled(false);
-        reviewsListView.addHeaderView(detailsHeaderView);
-        reviewsListView.addHeaderView(videosHeaderView);
-        reviewsListView.addHeaderView(reviewsLabelHeaderView);
-        reviewsListView.setAdapter(reviewAdapter);
 
         if (movie != null) {
+            View detailsHeaderView = layoutInflater.inflate(R.layout.list_header_movie_details, reviewsListView, false);
+            View videosHeaderView = layoutInflater.inflate(R.layout.list_header_videos, reviewsListView, false);
+            View reviewsLabelHeaderView = layoutInflater.inflate(R.layout.list_header_reviews_label, reviewsListView, false);
+            reviewAdapter = new ReviewAdapter(getActivity(), null, 0);
+
+            getActivity().setTitle("");
+            reviewsListView.setHeaderDividersEnabled(false);
+            reviewsListView.addHeaderView(detailsHeaderView);
+            reviewsListView.addHeaderView(videosHeaderView);
+            reviewsListView.addHeaderView(reviewsLabelHeaderView);
+            reviewsListView.setAdapter(reviewAdapter);
+
             populateMovieDetailsInView(rootView);
+        } else {
+            View noMovieSelectedWarningHeaderView = layoutInflater.inflate(R.layout.list_header_no_movie_selected, reviewsListView, false);
+            reviewAdapter = new ReviewAdapter(getActivity(), null, 0);
+            reviewsListView.setHeaderDividersEnabled(false);
+            reviewsListView.addHeaderView(noMovieSelectedWarningHeaderView);
+            reviewsListView.setAdapter(reviewAdapter);
         }
 
         return rootView;
@@ -179,7 +191,17 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.fragment_detail, menu);
+        activeMenu = menu;
+        inflater.inflate(R.menu.fragment_detail, activeMenu);
+        setShareActionProviderIntent();
+    }
+
+    private Intent createShareMovieIntent() {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, movieTrailerString);
+        return shareIntent;
     }
 
     @Override
@@ -188,7 +210,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             MenuItem favoriteButton = menu.findItem(R.id.action_favorite_movie);
 
             favoriteButton.setChecked(true);
-            favoriteButton.setIcon(R.drawable.ic_favorite_36dp);
+            favoriteButton.setIcon(R.drawable.ic_favorite);
         }
     }
 
@@ -198,12 +220,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             case R.id.action_favorite_movie:
                 if (!item.isChecked()) {
                     item.setChecked(true);
-                    item.setIcon(R.drawable.ic_favorite_36dp);
+                    item.setIcon(R.drawable.ic_favorite);
                     movie.setIsFavorite(true);
                     setFavoriteStatusOfMovieInProvider(movie, true);
                 } else {
                     item.setChecked(false);
-                    item.setIcon(R.drawable.ic_favorite_outline_36dp);
+                    item.setIcon(R.drawable.ic_favorite_outline);
                     movie.setIsFavorite(false);
                     setFavoriteStatusOfMovieInProvider(movie, false);
                 }
@@ -261,6 +283,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                 break;
             case VIDEOS_LOADER:
                 addVideosTextView(cursor);
+                setShareActionProviderIntent();
                 break;
         }
     }
@@ -292,6 +315,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
         if (cursor.moveToFirst() && cursor.getCount() >= 1) {
             removeNoVideosAvailableWarning();
+            setMovieTrailerString(cursor);
 
             do {
                 final Video video = new Video(cursor);
@@ -319,6 +343,18 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                     }
                 });
             } while (cursor.moveToNext());
+        }
+    }
+
+    private void setMovieTrailerString(Cursor cursor) {
+        movieTrailerString = new Video(cursor).getVideoUrl();
+    }
+
+    public synchronized void setShareActionProviderIntent() {
+        if (activeMenu != null && movieTrailerString != null) {
+            MenuItem shareMenuItem = activeMenu.findItem(R.id.action_share);
+            shareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareMenuItem);
+            shareActionProvider.setShareIntent(createShareMovieIntent());
         }
     }
 

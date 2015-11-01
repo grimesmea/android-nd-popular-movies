@@ -18,4 +18,6 @@
     <string name="movie_synopsis_label">Synopsis</string>
     <string name="no_videos_available">No videos found</string>
     <string name="no_reviews_available">No user reviews available</string>
+    <string name="action_share">Share</string>
+    <string name="no_movie_selected_warning">Select a movie!</string>
 </resources>
