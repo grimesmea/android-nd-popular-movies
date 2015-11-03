@@ -17,15 +17,17 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         final String SQL_CREATE_MOVIES_TABLE = "CREATE TABLE " + MoviesContract.MoviesEntry.TABLE_NAME + " (" +
                 MoviesContract.MoviesEntry._ID + " INTEGER PRIMARY KEY, " +
-                MoviesContract.MoviesEntry.COLUMN_MDB_ID + " INTEGER UNIQUE NOT NULL, " +
-                MoviesContract.MoviesEntry.COLUMN_MOVIE_TITLE + " TEXT UNIQUE NOT NULL, " +
+                MoviesContract.MoviesEntry.COLUMN_MDB_ID + " INTEGER NOT NULL, " +
+                MoviesContract.MoviesEntry.COLUMN_MOVIE_TITLE + " TEXT NOT NULL, " +
                 MoviesContract.MoviesEntry.COLUMN_MOVIE_SYNOPSIS + " TEXT NOT NULL, " +
                 MoviesContract.MoviesEntry.COLUMN_MOVIE_RELEASE_DATE + " REAL NOT NULL, " +
                 MoviesContract.MoviesEntry.COLUMN_MOVIE_POPULARITY + " REAL NOT NULL, " +
                 MoviesContract.MoviesEntry.COLUMN_MOVIE_RATING + " REAL NOT NULL, " +
                 MoviesContract.MoviesEntry.COLUMN_MOVIE_POSTER_PATH + " TEXT UNIQUE NOT NULL, " +
                 MoviesContract.MoviesEntry.COLUMN_MOVIE_BACKDROP_PATH + " TEXT UNIQUE NOT NULL, " +
-                MoviesContract.MoviesEntry.COLUMN_FAVORITE + " INTEGER NOT NULL" +
+                MoviesContract.MoviesEntry.COLUMN_FAVORITE + " INTEGER NOT NULL," +
+                MoviesContract.MoviesEntry.COLUMN_RETURNED_BY_POPULARITY_QUERY + " INTEGER NOT NULL," +
+                MoviesContract.MoviesEntry.COLUMN_RETURNED_BY_RATING_QUERY + " INTEGER NOT NULL" +
                 " );";
 
         final String SQL_CREATE_REVIEWS_TABLE = "CREATE TABLE " + MoviesContract.ReviewsEntry.TABLE_NAME + " (" +

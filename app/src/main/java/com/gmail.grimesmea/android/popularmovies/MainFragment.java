@@ -33,12 +33,12 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     static final int COL_FAVORITE = 9;
 
     private static final int MOVIES_LOADER = 100;
-
     public MoviePosterAdapter movieAdapter;
-
-    private boolean isSortedByPopularity = true;
-    private String sortByPopularityQueryParameter = MoviesContract.MoviesEntry.TABLE_NAME + "." +
+    String sortByPopularityQueryParameter = MoviesContract.MoviesEntry.TABLE_NAME + "." +
             MoviesContract.MoviesEntry.COLUMN_MOVIE_POPULARITY + " DESC";
+    private SortByCriteria sortByCriteria = SortByCriteria.POPULARITY;
+    private boolean hasFetchedByRating = false;
+    private String sortParam = "popularity.desc";
     private String sortByRatingQueryParameter = MoviesContract.MoviesEntry.TABLE_NAME + "." +
             MoviesContract.MoviesEntry.COLUMN_MOVIE_RATING + " DESC";
 
@@ -50,7 +50,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         super.onCreate(savedInstanceState);
 
         if (savedInstanceState != null && savedInstanceState.containsKey("sortedByPopularity")) {
-            isSortedByPopularity = savedInstanceState.getBoolean("sortedByPopularity");
+            sortByCriteria = (SortByCriteria) savedInstanceState.getSerializable("sortByCriteria");
         }
 
         if (!getActivity().getContentResolver().query(
@@ -91,7 +91,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     }
 
     private void fetchMovies() {
-        FetchMoviesTask moviesTask = new FetchMoviesTask(getActivity());
+        FetchMoviesTask moviesTask = new FetchMoviesTask(getActivity(), sortParam);
         moviesTask.execute();
     }
 
@@ -102,10 +102,21 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        if (isSortedByPopularity == true) {
+        if (sortByCriteria == SortByCriteria.POPULARITY) {
             menu.findItem(R.id.action_sort_by_popularity).setChecked(true);
-        } else {
+            sortParam = "popularity.desc";
+        } else if (sortByCriteria == SortByCriteria.RATING) {
             menu.findItem(R.id.action_sort_by_rating).setChecked(true);
+            sortParam = "vote_average.desc";
+        } else if (sortByCriteria == SortByCriteria.FAVORITES) {
+            menu.findItem(R.id.action_sort_by_favorites).setChecked(true);
+        } else {
+            try {
+                throw new Exception("Unknown sort criteria found when preparing options menu: " +
+                        sortByCriteria);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -115,14 +126,27 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
             case R.id.action_sort_by_popularity:
                 if (!item.isChecked()) {
                     item.setChecked(true);
-                    isSortedByPopularity = true;
+                    sortByCriteria = SortByCriteria.POPULARITY;
+                    sortParam = "popularity.desc";
                     getLoaderManager().restartLoader(MOVIES_LOADER, null, this);
                 }
                 return true;
             case R.id.action_sort_by_rating:
                 if (!item.isChecked()) {
                     item.setChecked(true);
-                    isSortedByPopularity = false;
+                    sortByCriteria = SortByCriteria.RATING;
+                    sortParam = "vote_average.desc";
+                    if (!hasFetchedByRating) {
+                        fetchMovies();
+                        hasFetchedByRating = true;
+                    }
+                    getLoaderManager().restartLoader(MOVIES_LOADER, null, this);
+                }
+                return true;
+            case R.id.action_sort_by_favorites:
+                if (!item.isChecked()) {
+                    item.setChecked(true);
+                    sortByCriteria = SortByCriteria.FAVORITES;
                     getLoaderManager().restartLoader(MOVIES_LOADER, null, this);
                 }
                 return true;
@@ -144,32 +168,48 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean("sortedByPopularity", isSortedByPopularity);
+        outState.putSerializable("sortedByCriteria", sortByCriteria);
         super.onSaveInstanceState(outState);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
-        CursorLoader cursorLoader;
+        CursorLoader cursorLoader = null;
 
-        if (isSortedByPopularity) {
+        if (sortByCriteria == SortByCriteria.POPULARITY) {
             cursorLoader = new CursorLoader(
                     getActivity(),
-                    MoviesContract.MoviesEntry.CONTENT_URI,
+                    MoviesContract.MoviesEntry.buildMoviesReturnedByPopularityQuery(),
                     null,
                     null,
                     null,
                     sortByPopularityQueryParameter
             );
-        } else {
+        } else if (sortByCriteria == SortByCriteria.RATING) {
             cursorLoader = new CursorLoader(
                     getActivity(),
-                    MoviesContract.MoviesEntry.CONTENT_URI,
+                    MoviesContract.MoviesEntry.buildMoviesReturnedByRatingQuery(),
                     null,
                     null,
                     null,
                     sortByRatingQueryParameter
             );
+        } else if (sortByCriteria == SortByCriteria.FAVORITES) {
+            cursorLoader = new CursorLoader(
+                    getActivity(),
+                    MoviesContract.MoviesEntry.buildFavoriteMoviesUri(),
+                    null,
+                    null,
+                    null,
+                    null
+            );
+        } else {
+            try {
+                throw new Exception("Unknown sort criteria found when creating cursor loader: " +
+                        sortByCriteria);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         return cursorLoader;
@@ -185,7 +225,13 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         movieAdapter.swapCursor(null);
     }
 
+    private enum SortByCriteria {
+        POPULARITY,
+        RATING,
+        FAVORITES
+    }
+
     public interface Callback {
-        public void onItemSelected(Movie movie);
+        void onItemSelected(Movie movie);
     }
 }

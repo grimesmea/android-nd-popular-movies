@@ -27,6 +27,8 @@ public class TestUtilities extends AndroidTestCase {
     static final String TEST_MOVIE_POSTER_PATH = "/test/posterpath";
     static final String TEST_MOVIE_BACKDROP_PATH = "/test/backdroppath";
     static final int TEST_FAVORITE = 1;
+    static final int TEST_POPULAR = 1;
+    static final int TEST_HIGHLY_RATED = 1;
 
     static final String TEST_REVIEW_AUTHOR = "Test Review Author";
     static final String TEST_REVIEW_CONTENT = "Test Review Content";
@@ -80,6 +82,8 @@ public class TestUtilities extends AndroidTestCase {
         movieValues.put(MoviesContract.MoviesEntry.COLUMN_MOVIE_POSTER_PATH, TEST_MOVIE_POSTER_PATH + i);
         movieValues.put(MoviesContract.MoviesEntry.COLUMN_MOVIE_BACKDROP_PATH, TEST_MOVIE_BACKDROP_PATH + i);
         movieValues.put(MoviesContract.MoviesEntry.COLUMN_FAVORITE, TEST_FAVORITE);
+        movieValues.put(MoviesContract.MoviesEntry.COLUMN_RETURNED_BY_POPULARITY_QUERY, TEST_POPULAR);
+        movieValues.put(MoviesContract.MoviesEntry.COLUMN_RETURNED_BY_RATING_QUERY, TEST_HIGHLY_RATED);
 
         return movieValues;
     }

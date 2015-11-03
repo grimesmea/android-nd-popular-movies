@@ -12,6 +12,8 @@ public class MoviesProvider extends ContentProvider {
     static final int MOVIES = 100;
     static final int MOVIE = 101;
     static final int FAVORITES = 200;
+    static final int POPULAR = 201;
+    static final int HIGHLY_RATED = 202;
     static final int REVIEWS = 300;
     static final int REVIEW = 301;
     static final int REVIEWS_FOR_MOVIE = 302;
@@ -25,6 +27,12 @@ public class MoviesProvider extends ContentProvider {
     private static final String favoritesSelection =
             MoviesContract.MoviesEntry.TABLE_NAME + "." +
                     MoviesContract.MoviesEntry.COLUMN_FAVORITE + " = 1";
+    private static final String popularSelection =
+            MoviesContract.MoviesEntry.TABLE_NAME + "." +
+                    MoviesContract.MoviesEntry.COLUMN_RETURNED_BY_POPULARITY_QUERY + " = 1";
+    private static final String highlyRatedSelection =
+            MoviesContract.MoviesEntry.TABLE_NAME + "." +
+                    MoviesContract.MoviesEntry.COLUMN_RETURNED_BY_RATING_QUERY + " = 1";
     private static final String reviewSelection =
             MoviesContract.ReviewsEntry.TABLE_NAME + "." +
                     MoviesContract.ReviewsEntry._ID + " = ?";
@@ -46,6 +54,8 @@ public class MoviesProvider extends ContentProvider {
         uriMatcher.addURI(authority, MoviesContract.PATH_MOVIES, MOVIES);
         uriMatcher.addURI(authority, MoviesContract.PATH_MOVIES + "/#", MOVIE);
         uriMatcher.addURI(authority, MoviesContract.PATH_MOVIES + "/favoriteMovies", FAVORITES);
+        uriMatcher.addURI(authority, MoviesContract.PATH_MOVIES + "/popularMovies", POPULAR);
+        uriMatcher.addURI(authority, MoviesContract.PATH_MOVIES + "/highlyRatedMovies", HIGHLY_RATED);
         uriMatcher.addURI(authority, MoviesContract.PATH_REVIEWS, REVIEWS);
         uriMatcher.addURI(authority, MoviesContract.PATH_REVIEWS + "/#", REVIEW);
         uriMatcher.addURI(authority, MoviesContract.PATH_REVIEWS + "/reviewsForMovie", REVIEWS_FOR_MOVIE);
@@ -96,6 +106,30 @@ public class MoviesProvider extends ContentProvider {
                         MoviesContract.MoviesEntry.TABLE_NAME,
                         projection,
                         favoritesSelection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
+            }
+            case POPULAR: {
+                cursor = moviesDbHelper.getReadableDatabase().query(
+                        MoviesContract.MoviesEntry.TABLE_NAME,
+                        projection,
+                        popularSelection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
+            }
+            case HIGHLY_RATED: {
+                cursor = moviesDbHelper.getReadableDatabase().query(
+                        MoviesContract.MoviesEntry.TABLE_NAME,
+                        projection,
+                        highlyRatedSelection,
                         selectionArgs,
                         null,
                         null,
@@ -193,6 +227,10 @@ public class MoviesProvider extends ContentProvider {
                 return MoviesContract.MoviesEntry.CONTENT_ITEM_TYPE;
             case FAVORITES:
                 return MoviesContract.MoviesEntry.CONTENT_TYPE;
+            case POPULAR:
+                return MoviesContract.MoviesEntry.CONTENT_TYPE;
+            case HIGHLY_RATED:
+                return MoviesContract.MoviesEntry.CONTENT_TYPE;
             case REVIEWS:
                 return MoviesContract.ReviewsEntry.CONTENT_TYPE;
             case REVIEW:
@@ -280,6 +318,22 @@ public class MoviesProvider extends ContentProvider {
                 rowsDeleted = db.delete(
                         MoviesContract.MoviesEntry.TABLE_NAME,
                         favoritesSelection,
+                        selectionArgs
+                );
+                break;
+            }
+            case POPULAR: {
+                rowsDeleted = db.delete(
+                        MoviesContract.MoviesEntry.TABLE_NAME,
+                        popularSelection,
+                        selectionArgs
+                );
+                break;
+            }
+            case HIGHLY_RATED: {
+                rowsDeleted = db.delete(
+                        MoviesContract.MoviesEntry.TABLE_NAME,
+                        highlyRatedSelection,
                         selectionArgs
                 );
                 break;
@@ -372,6 +426,24 @@ public class MoviesProvider extends ContentProvider {
                         MoviesContract.MoviesEntry.TABLE_NAME,
                         values,
                         favoritesSelection,
+                        selectionArgs
+                );
+                break;
+            }
+            case POPULAR: {
+                rowsUpdated = db.update(
+                        MoviesContract.MoviesEntry.TABLE_NAME,
+                        values,
+                        popularSelection,
+                        selectionArgs
+                );
+                break;
+            }
+            case HIGHLY_RATED: {
+                rowsUpdated = db.update(
+                        MoviesContract.MoviesEntry.TABLE_NAME,
+                        values,
+                        highlyRatedSelection,
                         selectionArgs
                 );
                 break;

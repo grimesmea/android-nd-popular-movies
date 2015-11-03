@@ -26,11 +26,12 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Movie[]> {
 
     private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
     private final Context context;
-
+    String sortParam;
     private Movie[] moviesArray;
 
-    public FetchMoviesTask(Context context) {
+    public FetchMoviesTask(Context context, String sortParam) {
         this.context = context;
+        this.sortParam = sortParam;
     }
 
     @Override
@@ -38,19 +39,31 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Movie[]> {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
         String moviesJsonStr = null;
-        String sortParam = "popularity.desc";
         String apiKey = BuildConfig.API_KEY;
+        String minVoteCount = "1000";
 
         try {
             final String MOVIEDB_BASE_URL =
                     "http://api.themoviedb.org/3/discover/movie?";
             final String SORT_PARAM = "sort_by";
             final String API_KEY_PARAM = "api_key";
+            final String MIN_VOTE_COUNT = "vote_count.gte";
 
-            Uri builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
-                    .appendQueryParameter(SORT_PARAM, sortParam)
-                    .appendQueryParameter(API_KEY_PARAM, apiKey)
-                    .build();
+            Uri builtUri;
+
+            if (sortParam == "vote_average.desc") {
+                builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
+                        .appendQueryParameter(SORT_PARAM, sortParam)
+                        .appendQueryParameter(API_KEY_PARAM, apiKey)
+                        .appendQueryParameter(MIN_VOTE_COUNT, minVoteCount)
+                        .build();
+                Log.d(LOG_TAG, builtUri.toString());
+            } else {
+                builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
+                        .appendQueryParameter(SORT_PARAM, sortParam)
+                        .appendQueryParameter(API_KEY_PARAM, apiKey)
+                        .build();
+            }
 
             URL url = new URL(builtUri.toString());
 
@@ -122,11 +135,22 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Movie[]> {
         int insertedRows = 0;
 
         if (moviesArray.length > 0) {
+            ContentValues movieQueryTypeValues = new ContentValues();
             List<ContentValues> moviesContentValuesVector = new Vector<ContentValues>(moviesArray.length);
             ContentValues[] moviesContentValuesArray = new ContentValues[moviesArray.length];
 
+            if (sortParam == "popularity.desc") {
+                movieQueryTypeValues.put(MoviesContract.MoviesEntry.COLUMN_RETURNED_BY_POPULARITY_QUERY, 1);
+                movieQueryTypeValues.put(MoviesContract.MoviesEntry.COLUMN_RETURNED_BY_RATING_QUERY, 0);
+            } else if (sortParam == "vote_average.desc") {
+                movieQueryTypeValues.put(MoviesContract.MoviesEntry.COLUMN_RETURNED_BY_POPULARITY_QUERY, 0);
+                movieQueryTypeValues.put(MoviesContract.MoviesEntry.COLUMN_RETURNED_BY_RATING_QUERY, 1);
+            }
+
             for (Movie movie : moviesArray) {
-                moviesContentValuesVector.add(movie.createContentValues());
+                ContentValues movieContentValues = new ContentValues(movie.createContentValues());
+                movieContentValues.putAll(movieQueryTypeValues);
+                moviesContentValuesVector.add(movieContentValues);
             }
             moviesContentValuesVector.toArray(moviesContentValuesArray);
 

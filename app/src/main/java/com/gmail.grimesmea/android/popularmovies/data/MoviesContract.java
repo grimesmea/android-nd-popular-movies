@@ -31,6 +31,8 @@ public class MoviesContract {
         public static final String COLUMN_MOVIE_POSTER_PATH = "movie_poster_path";
         public static final String COLUMN_MOVIE_BACKDROP_PATH = "movie_backdrop_path";
         public static final String COLUMN_FAVORITE = "favorite";
+        public static final String COLUMN_RETURNED_BY_POPULARITY_QUERY = "returnedByPopularityQuery";
+        public static final String COLUMN_RETURNED_BY_RATING_QUERY = "returnedByRatingQuery";
 
         public static Uri buildMovieUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
@@ -38,6 +40,14 @@ public class MoviesContract {
 
         public static Uri buildFavoriteMoviesUri() {
             return CONTENT_URI.buildUpon().appendPath("favoriteMovies").build();
+        }
+
+        public static Uri buildMoviesReturnedByPopularityQuery() {
+            return CONTENT_URI.buildUpon().appendPath("popularMovies").build();
+        }
+
+        public static Uri buildMoviesReturnedByRatingQuery() {
+            return CONTENT_URI.buildUpon().appendPath("highlyRatedMovies").build();
         }
     }
 

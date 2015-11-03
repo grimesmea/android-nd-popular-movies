@@ -14,7 +14,6 @@ public class MoviePosterAdapter extends CursorAdapter {
 
     private static final String LOG_TAG = MoviePosterAdapter.class.getSimpleName();
 
-
     public MoviePosterAdapter(Context context, Cursor cursor, int flags) {
         super(context, cursor, flags);
     }

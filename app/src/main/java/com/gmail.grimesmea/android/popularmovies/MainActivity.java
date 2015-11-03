@@ -43,6 +43,5 @@ public class MainActivity extends AppCompatActivity implements MainFragment.Call
                     .putExtra("movie", args);
             startActivity(intent);
         }
-
     }
 }

@@ -22,4 +22,10 @@ public class DetailActivity extends AppCompatActivity {
                     .commit();
         }
     }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
+    }
 }

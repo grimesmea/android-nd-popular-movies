@@ -92,6 +92,14 @@ public class TestProvider extends AndroidTestCase {
         assertEquals("Error: the MoviesEntry favorite movies URI should return MoviesEntry.CONTENT_TYPE",
                 MoviesContract.MoviesEntry.CONTENT_TYPE, favoritesUriType);
 
+        String popularUriType = mContext.getContentResolver().getType(MoviesContract.MoviesEntry.buildMoviesReturnedByPopularityQuery());
+        assertEquals("Error: the MoviesEntry popular movies URI should return MoviesEntry.CONTENT_TYPE",
+                MoviesContract.MoviesEntry.CONTENT_TYPE, popularUriType);
+
+        String highlyRatedUriType = mContext.getContentResolver().getType(MoviesContract.MoviesEntry.buildMoviesReturnedByRatingQuery());
+        assertEquals("Error: the MoviesEntry highly rated movies URI should return MoviesEntry.CONTENT_TYPE",
+                MoviesContract.MoviesEntry.CONTENT_TYPE, highlyRatedUriType);
+
         String reviewsUriType = mContext.getContentResolver().getType(MoviesContract.ReviewsEntry.CONTENT_URI);
         assertEquals("Error: the ReviewsEntry CONTENT_URI should return ReviewsEntry.CONTENT_TYPE",
                 MoviesContract.ReviewsEntry.CONTENT_TYPE, reviewsUriType);
@@ -218,8 +226,27 @@ public class TestProvider extends AndroidTestCase {
                 null,
                 null
         );
-
         TestUtilities.validateCursor("favorites query", cursor, testValues);
+
+        // Test with POPULAR URI
+        cursor = mContext.getContentResolver().query(
+                MoviesEntry.buildMoviesReturnedByPopularityQuery(),
+                null,
+                null,
+                null,
+                null
+        );
+        TestUtilities.validateCursor("popular query", cursor, testValues);
+
+        // Test with HIGHLY_RATED URI
+        cursor = mContext.getContentResolver().query(
+                MoviesEntry.buildMoviesReturnedByRatingQuery(),
+                null,
+                null,
+                null,
+                null
+        );
+        TestUtilities.validateCursor("highly rated query", cursor, testValues);
 
         cursor.close();
         db.close();
@@ -401,6 +428,52 @@ public class TestProvider extends AndroidTestCase {
                 null
         );
         TestUtilities.validateCursor("favorites update ", cursor, updatedValues);
+
+        // Test with POPULAR URI
+        cursor.registerContentObserver(testContentObserver);
+        updatedValues.put(MoviesEntry.COLUMN_MOVIE_TITLE, "Updated Test Movie Title 3");
+
+        count = mContext.getContentResolver().update(
+                MoviesEntry.buildMoviesReturnedByPopularityQuery(),
+                updatedValues,
+                null,
+                null
+        );
+        assertEquals(1, count);
+        testContentObserver.waitForNotificationOrFail();
+        cursor.unregisterContentObserver(testContentObserver);
+
+        cursor = mContext.getContentResolver().query(
+                MoviesEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        TestUtilities.validateCursor("popular update ", cursor, updatedValues);
+
+        // Test with HIGHLY_RATED URI
+        cursor.registerContentObserver(testContentObserver);
+        updatedValues.put(MoviesEntry.COLUMN_MOVIE_TITLE, "Updated Test Movie Title 3");
+
+        count = mContext.getContentResolver().update(
+                MoviesEntry.buildMoviesReturnedByRatingQuery(),
+                updatedValues,
+                null,
+                null
+        );
+        assertEquals(1, count);
+        testContentObserver.waitForNotificationOrFail();
+        cursor.unregisterContentObserver(testContentObserver);
+
+        cursor = mContext.getContentResolver().query(
+                MoviesEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        TestUtilities.validateCursor("highly rated update ", cursor, updatedValues);
 
         mContext.getContentResolver().unregisterContentObserver(testContentObserver);
         testContentObserver.closeHandlerThread();
@@ -796,6 +869,44 @@ public class TestProvider extends AndroidTestCase {
                 null
         );
         assertEquals("Error: Records not deleted from Movies table during favorites delete", 0, cursor.getCount());
+
+        // Test with POPULAR URI
+        rowId = TestUtilities.insertMoviesIntoProvider(mContext, testValues);
+
+        mContext.getContentResolver().delete(
+                MoviesEntry.buildMovieUri(1),
+                null,
+                null
+        );
+        testContentObserver.waitForNotificationOrFail();
+
+        cursor = mContext.getContentResolver().query(
+                MoviesEntry.buildMoviesReturnedByPopularityQuery(),
+                null,
+                null,
+                null,
+                null
+        );
+        assertEquals("Error: Records not deleted from Movies table during popular delete", 0, cursor.getCount());
+
+        // Test with HIGHLY RATED URI
+        rowId = TestUtilities.insertMoviesIntoProvider(mContext, testValues);
+
+        mContext.getContentResolver().delete(
+                MoviesEntry.buildMovieUri(1),
+                null,
+                null
+        );
+        testContentObserver.waitForNotificationOrFail();
+
+        cursor = mContext.getContentResolver().query(
+                MoviesEntry.buildMoviesReturnedByRatingQuery(),
+                null,
+                null,
+                null,
+                null
+        );
+        assertEquals("Error: Records not deleted from Movies table during highly rated delete", 0, cursor.getCount());
 
         mContext.getContentResolver().unregisterContentObserver(testContentObserver);
         testContentObserver.closeHandlerThread();
